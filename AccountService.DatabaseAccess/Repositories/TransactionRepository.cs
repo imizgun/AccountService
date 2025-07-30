@@ -3,6 +3,6 @@ using AccountService.Core.Domain.Entities;
 
 namespace AccountService.DatabaseAccess.Repositories;
 
-public class TransactionRepository(AccountServiceDbContext context) : BaseRepository<Transaction>(context), ITransactionRepository
+public class TransactionRepository : BaseRepository<Transaction>, ITransactionRepository
 {
 }
