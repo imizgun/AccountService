@@ -1,8 +1,9 @@
-﻿using AccountService.Core.Domain.Entities;
-using AccountService.Core.Domain.Enums;
+﻿namespace AccountService.Application.Features.DTOs;
 
-namespace AccountService.Application.Features.Accounts.DTOs;
 
+/// <summary>
+/// DTO для представления аккаунта
+/// </summary>
 public class AccountDto
 {
     public Guid Id { get; set; }
@@ -14,5 +15,5 @@ public class AccountDto
     public DateTime OpeningDate { get; set; }
     public DateTime? ClosingDate { get; set; }
 
-    public List<Transaction> Transactions { get; set; } = new();
+    // public List<TransactionDto> Transactions { get; set; } = new();
 }

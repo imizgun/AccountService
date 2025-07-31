@@ -14,4 +14,9 @@ public class BaseRepository<T> : IBaseRepository<T> where T : class, IIdentifiab
         DbSet.Add(obj);
         return DbSet.Count > lengthBefore ? await Task.FromResult(obj.Id) : await Task.FromResult(Guid.Empty);
     }
+
+    public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return await Task.FromResult(DbSet.Any(x => x.Id == id));
+    }
 }

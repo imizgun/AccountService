@@ -10,7 +10,18 @@ public class Account : IIdentifiable
     public AccountType AccountType { get; set; }
     public string Currency { get; set; } = null!;
     public decimal Balance { get; set; }
-    public decimal? InterestRate { get; set; }
+    private decimal? _interestRate;
+    public decimal? InterestRate
+    {
+        get => _interestRate;
+        set
+        {
+            if (AccountType == AccountType.Checking && value.HasValue)
+                throw new ArgumentException("Checking accounts cannot have an interest rate.");
+            _interestRate = value;
+        }
+    }
+
     public DateTime OpeningDate { get; set; }
     public DateTime? ClosingDate { get; set; }
 
@@ -43,5 +54,23 @@ public class Account : IIdentifiable
             throw new InvalidOperationException("Account is already closed.");
 
         ClosingDate = DateTime.UtcNow;
+    }
+
+    private bool CanWithdrawal(decimal amount)
+    {
+        if (amount > Balance) throw new InvalidOperationException("Insufficient funds.");
+
+        return true;
+    }
+
+    public void Withdraw(decimal amount)
+    {
+        if (CanWithdrawal(amount))
+            Balance -= amount;
+    }
+
+    public void Deposit(decimal amount)
+    {
+        Balance += amount;
     }
 }

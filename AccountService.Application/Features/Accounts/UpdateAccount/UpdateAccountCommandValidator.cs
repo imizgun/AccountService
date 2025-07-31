@@ -6,9 +6,8 @@ public class UpdateAccountCommandValidator : AbstractValidator<UpdateAccountComm
 {
     public UpdateAccountCommandValidator()
     {
-        RuleFor(x => x.AccountId).NotEmpty();
-
-        RuleFor(x => x.InterestRate)
-            .Must(x => x >= 0);
+        RuleFor(x => x.AccountId)
+            .NotEmpty()
+            .WithMessage("Account ID must not be empty.");
     }
 }

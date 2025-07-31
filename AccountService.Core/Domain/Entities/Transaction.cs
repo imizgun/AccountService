@@ -42,4 +42,20 @@ public class Transaction : IIdentifiable
         return new Transaction(Guid.NewGuid(), accountId, counterpartyAccountId, amount, currency,
             transactionType, description);
     }
+
+    public Transaction GetReverseTransaction()
+    {
+        if (CounterpartyAccountId == null) throw new InvalidOperationException("Cannot reverse a transaction without a counterparty account.");
+
+        var notNullCounterpartyAccountId = CounterpartyAccountId ?? Guid.Empty;
+
+        return Create(
+                notNullCounterpartyAccountId,
+                AccountId,
+                Amount,
+                Currency,
+                TransactionType == TransactionType.Credit ? TransactionType.Debit : TransactionType.Credit,
+                Description
+            );
+    }
 }

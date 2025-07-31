@@ -1,4 +1,4 @@
-﻿using AccountService.Application.Features.Accounts.DTOs;
+﻿using AccountService.Application.Features.DTOs;
 using AccountService.Core.Domain.Entities;
 using AutoMapper;
 

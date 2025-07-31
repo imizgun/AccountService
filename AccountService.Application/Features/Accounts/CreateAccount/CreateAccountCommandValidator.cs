@@ -15,19 +15,26 @@ public class CreateAccountCommandValidator : AbstractValidator<CreateAccountComm
         _clientService = clientService;
 
         RuleFor(x => x.OwnerId)
-            .NotEmpty();
+            .NotEmpty()
+            .WithMessage("OwnerId cannot be empty");
 
         RuleFor(x => x.AccountType)
             .NotEmpty()
-            .Must(BeValidAccountType);
+            .WithMessage("AccountType cannot be empty")
+            .Must(BeValidAccountType)
+            .WithMessage("AccountType must be a valid enum value");
 
         RuleFor(x => x.Currency)
             .NotEmpty()
-            .Must(_currencyService.IsValidCurrency);
+            .WithMessage("Currency cannot be empty")
+            .Must(_currencyService.IsValidCurrency)
+            .WithMessage("Currency must be a valid currency");
 
         RuleFor(x => x.OwnerId)
             .NotEmpty()
-            .Must(x => _clientService.IsClientExists(x));
+            .WithMessage("OwnerId cannot be empty")
+            .Must(x => _clientService.IsClientExists(x))
+            .WithMessage("Owner does not exist");
     }
 
     private bool BeValidAccountType(string accountType)

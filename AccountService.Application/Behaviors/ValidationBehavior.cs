@@ -1,5 +1,4 @@
-﻿using AccountService.Core.Domain.Abstraction;
-using FluentValidation;
+﻿using FluentValidation;
 using MediatR;
 
 namespace AccountService.Application.Behaviors;
@@ -27,13 +26,12 @@ where TRequest : notnull
             .WhenAll(
                 _validators.Select(v => v.ValidateAsync(context, cancellationToken)));
 
-        var errors = validationResults
+        var error = validationResults
             .SelectMany(r => r.Errors)
-            .Where(r => r != null)
-            .ToList();
+            .FirstOrDefault(r => r != null);
 
-        if (errors.Count != 0)
-            throw new ValidationException(errors);
+        if (error is not null)
+            throw new ValidationException([error]);
 
 
         return await next(cancellationToken);

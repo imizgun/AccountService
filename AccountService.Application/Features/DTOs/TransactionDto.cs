@@ -1,6 +1,4 @@
-﻿using AccountService.Core.Domain.Enums;
-
-namespace AccountService.Application.Features.Accounts.DTOs;
+﻿namespace AccountService.Application.Features.DTOs;
 
 public class TransactionDto
 {
@@ -9,7 +7,7 @@ public class TransactionDto
     public Guid? CounterpartyAccountId { get; set; }
     public decimal Amount { get; set; }
     public string Currency { get; set; } = null!;
-    public TransactionType TransactionType { get; set; }
+    public string TransactionType { get; set; } = null!;
     public string Description { get; set; } = null!;
     public DateTime TransactionDate { get; set; }
 }

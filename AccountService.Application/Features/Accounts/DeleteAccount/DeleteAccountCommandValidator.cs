@@ -6,6 +6,8 @@ public class DeleteAccountCommandValidator : AbstractValidator<DeleteAccountComm
 {
     public DeleteAccountCommandValidator()
     {
-        RuleFor(x => x.AccountId).NotEmpty();
+        RuleFor(x => x.AccountId)
+            .NotEmpty()
+            .WithMessage("Account ID must not be empty.");
     }
 }

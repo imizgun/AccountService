@@ -44,4 +44,9 @@ public class AccountRepository : BaseRepository<Account>, IAccountRepository
 
         return await Task.FromResult(true);
     }
+
+    public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken)
+    {
+        return await Task.FromResult(DbSet.Any(a => a.Id == id));
+    }
 }

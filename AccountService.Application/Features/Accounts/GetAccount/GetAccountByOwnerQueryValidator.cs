@@ -13,6 +13,8 @@ public class GetAccountByOwnerQueryValidator : AbstractValidator<GetAccountsByOw
 
         RuleFor(x => x.OwnerId)
             .NotEmpty()
-            .Must(x => _clientService.IsClientExists(x));
+            .WithMessage("Owner ID must not be empty.")
+            .Must(x => _clientService.IsClientExists(x))
+            .WithMessage("Owner with the specified ID does not exist.");
     }
 }
