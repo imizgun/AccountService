@@ -30,6 +30,6 @@ public class CreateAccountCommandValidator : AbstractValidator<CreateAccountComm
 
     private static bool BeValidAccountType(string accountType)
     {
-        return Enum.TryParse<AccountType>(accountType, true, out var _);
+        return Enum.TryParse<AccountType>(accountType, true, out _);
     }
 }

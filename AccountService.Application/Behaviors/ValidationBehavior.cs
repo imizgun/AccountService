@@ -33,7 +33,7 @@ where TRequest : notnull
             .Select(g => g.First())
             .ToList();
 
-        if (failures.Count == 0)
+        if (failures.Count != 0)
             throw new ValidationException(failures);
 
 

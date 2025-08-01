@@ -1,4 +1,3 @@
-using System.Reflection;
 using AccountService;
 using AccountService.Application.Behaviors;
 using AccountService.Application.Features.Accounts.CreateAccount;
@@ -17,10 +16,13 @@ builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    var xml = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xml);
-    c.IncludeXmlComments(xmlPath);
+    var mainXml = Path.Combine(AppContext.BaseDirectory, "AccountService.xml");
+    var appXml = Path.Combine(AppContext.BaseDirectory, "AccountService.Application.xml");
+
+    c.IncludeXmlComments(mainXml);
+    c.IncludeXmlComments(appXml);
 });
+
 
 builder.Services.AddControllers(options =>
 {
