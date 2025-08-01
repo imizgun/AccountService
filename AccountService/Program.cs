@@ -7,6 +7,7 @@ using AccountService.Application.Services.Services;
 using AccountService.Core.Domain.Abstraction;
 using AccountService.DatabaseAccess.Repositories;
 using AccountService.Filters;
+using AccountService.Responses;
 using FluentValidation;
 using MediatR;
 
@@ -52,7 +53,7 @@ app.Use(async (context, next) =>
     catch (Exception ex)
     {
         context.Response.StatusCode = 400;
-        await context.Response.WriteAsJsonAsync(new { error = ex.Message });
+        await context.Response.WriteAsJsonAsync(MbResult<object>.Fail(ex.Message));
     }
 });
 
@@ -65,6 +66,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseCors(c => c
+    .AllowAnyHeader()
+    .AllowAnyOrigin()
+    .AllowAnyMethod()
+    );
 
 app.UseHttpsRedirection();
 app.Run();

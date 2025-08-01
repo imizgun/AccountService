@@ -35,12 +35,12 @@ public class AccountController : ControllerBase
     /// <response code="200">Возвращает список аккаунтов</response>
     /// <response code="400">Некорректный запрос или ошибка на сервере</response>
     [HttpGet]
-    public async Task<ActionResult<List<AccountDto>>> GetAccountsByOwner([FromQuery] Guid ownerId, CancellationToken cancellationToken)
+    public async Task<ActionResult<MbResult<List<AccountDto>>>> GetAccountsByOwner([FromQuery] Guid ownerId, CancellationToken cancellationToken)
     {
         var query = new GetAccountsByOwnerQuery(ownerId);
         var result = await _mediator.Send(query, cancellationToken);
 
-        return Ok(result);
+        return Ok(MbResult<List<AccountDto>>.Ok(result));
     }
 
 
@@ -53,11 +53,13 @@ public class AccountController : ControllerBase
     /// <response code="200">Аккаунт успешно создан</response>
     /// <response code="400">Некорректный запрос или ошибка на сервере</response>
     [HttpPost]
-    public async Task<ActionResult<CreateResponse>> CreateAccount([FromBody] CreateAccountCommand command, CancellationToken cancellationToken)
+    public async Task<ActionResult<MbResult<Guid>>> CreateAccount([FromBody] CreateAccountCommand command, CancellationToken cancellationToken)
     {
         var result = await _mediator.Send(command, cancellationToken);
 
-        return result == Guid.Empty ? BadRequest(new CreateResponse(result)) : Ok(new CreateResponse(result));
+        return result == Guid.Empty ? 
+            BadRequest(MbResult<Guid>.Fail("Unknow error while creating an account...")) : 
+            Ok(MbResult<Guid>.Ok(result));
     }
 
 
@@ -70,14 +72,14 @@ public class AccountController : ControllerBase
     /// <response code="200">Счет успешно закрыт</response>
     /// <response code="400">Некорректный запрос или ошибка на сервере</response> 
     [HttpDelete("{id:guid}")]
-    public async Task<ActionResult<SimpleResponse>> DeleteAccount(Guid id, CancellationToken cancellationToken)
+    public async Task<ActionResult<MbResult<Guid>>> DeleteAccount(Guid id, CancellationToken cancellationToken)
     {
         var command = new DeleteAccountCommand(id);
         var res = await _mediator.Send(command, cancellationToken);
 
         return res ?
-            Ok(new SimpleResponse("Deleted successfully"))
-            : NotFound(new SimpleResponse("Resource not found"));
+            Ok(MbResult<Guid>.Ok(id, "Deleted successfully"))
+            : NotFound(MbResult<Guid>.Fail("Resource not found"));
     }
 
     /// <summary>
@@ -90,13 +92,13 @@ public class AccountController : ControllerBase
     /// <response code="200">Счет успешно обновлен</response>
     /// <response code="400">Некорректный запрос или ошибка на сервере</response> 
     [HttpPatch("{id:guid}")]
-    public async Task<ActionResult<SimpleResponse>> UpdateAccount(Guid id, [FromBody] UpdateAccountRequest command, CancellationToken cancellationToken)
+    public async Task<ActionResult<MbResult<Guid>>> UpdateAccount(Guid id, [FromBody] UpdateAccountRequest command, CancellationToken cancellationToken)
     {
         var res = await _mediator.Send(new UpdateAccountCommand(id, command.InterestRate), cancellationToken);
 
         return res ?
-                Ok(new SimpleResponse("Updated successfully"))
-                : NotFound(new SimpleResponse("Resource not found"));
+                Ok(MbResult<Guid>.Ok(id,"Updated successfully"))
+                : NotFound(MbResult<Guid>.Fail("Resource not found"));
     }
 
     /// <summary>
@@ -110,7 +112,7 @@ public class AccountController : ControllerBase
     /// <response code="200">Возвращает список транзакций</response>
     /// <response code="400">Некорректный запрос или ошибка на сервере</response>
     [HttpGet("{id:guid}/transactions")]
-    public async Task<ActionResult<List<TransactionDto>>> GetTransactionsByAccountId(
+    public async Task<ActionResult<MbResult<List<TransactionDto>>>> GetTransactionsByAccountId(
         Guid id,
         [FromQuery] int? skip,
         [FromQuery] int? take,
@@ -121,7 +123,7 @@ public class AccountController : ControllerBase
 
         var result = await _mediator.Send(new GetTransactionsCommand(id, notNullTake, notNullSkip), cancellationToken);
 
-        return Ok(result);
+        return Ok(MbResult<List<TransactionDto>>.Ok(result));
     }
 
 
@@ -135,7 +137,7 @@ public class AccountController : ControllerBase
     /// <response code="200">Возвращает ID созданной транзакции</response>
     /// <response code="400">Некорректный запрос или ошибка на сервере</response>
     [HttpPost("{id:guid}/transactions")]
-    public async Task<ActionResult<CreateResponse>> CreateTransaction(
+    public async Task<ActionResult<MbResult<Guid>>> CreateTransaction(
         Guid id,
         [FromBody] CreateTransactionRequest request,
         CancellationToken cancellationToken)
@@ -150,7 +152,9 @@ public class AccountController : ControllerBase
 
         var result = await _mediator.Send(command, cancellationToken);
 
-        return result == Guid.Empty ? BadRequest(new CreateResponse(result)) : Ok(new CreateResponse(result));
+        return result == Guid.Empty ? 
+            BadRequest(MbResult<Guid>.Fail("Error while creating transaction")) : 
+            Ok(MbResult<Guid>.Ok(result, "Transaction created successfully"));
     }
 
 
@@ -164,14 +168,14 @@ public class AccountController : ControllerBase
     /// <response code="200">Успешное удаление</response>
     /// <response code="400">Некорректный запрос или ошибка на сервере</response>
     [HttpDelete("{id:guid}/transactions/{transactionId:guid}")]
-    public async Task<ActionResult<SimpleResponse>> DeleteTransaction(Guid id, Guid transactionId, CancellationToken cancellationToken)
+    public async Task<ActionResult<MbResult<Guid>>> DeleteTransaction(Guid id, Guid transactionId, CancellationToken cancellationToken)
     {
         var command = new DeleteTransactionCommand(transactionId);
         var res = await _mediator.Send(command, cancellationToken);
 
         return res ?
-            Ok(new SimpleResponse("Deleted successfully"))
-            : NotFound(new SimpleResponse("Resource not found"));
+            Ok(MbResult<Guid>.Ok(transactionId, "Deleted successfully"))
+            : NotFound(MbResult<Guid>.Fail("Resource not found"));
     }
 
     /// <summary>
@@ -185,7 +189,7 @@ public class AccountController : ControllerBase
     /// <response code="200">Успешное обновление</response>
     /// <response code="400">Некорректный запрос или ошибка на сервере</response>
     [HttpPatch("{id:guid}/transactions/{transactionId:guid}")]
-    public async Task<ActionResult<SimpleResponse>> UpdateTransaction(
+    public async Task<ActionResult<MbResult<Guid>>> UpdateTransaction(
         Guid id,
         Guid transactionId,
         [FromBody] UpdateTransactionRequest request,
@@ -194,6 +198,8 @@ public class AccountController : ControllerBase
         var command = new UpdateTransactionCommand(transactionId, request.Description);
         var res = await _mediator.Send(command, cancellationToken);
 
-        return !res ? BadRequest(new SimpleResponse("Update failed")) : Ok(new SimpleResponse("Updated successfully"));
+        return !res ? 
+            BadRequest(MbResult<Guid>.Fail("Update failed")) : 
+            Ok(MbResult<Guid>.Ok(transactionId, "Updated successfully"));
     }
 }

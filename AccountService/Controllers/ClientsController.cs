@@ -1,4 +1,5 @@
 ﻿using AccountService.Application.Services.Abstractions;
+using AccountService.Responses;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AccountService.Controllers;
@@ -20,9 +21,9 @@ public class ClientsController : ControllerBase
     /// <returns>Список ID пользователей</returns>
     /// <response code="200">Список пользователей</response>
     [HttpGet]
-    public ActionResult<List<Guid>> GetClientIds()
+    public ActionResult<MbResult<List<Guid>>> GetClientIds()
     {
         var clientIds = _clientService.GetClientIds();
-        return Ok(clientIds);
+        return Ok(MbResult<List<Guid>>.Ok(clientIds));
     }
 }

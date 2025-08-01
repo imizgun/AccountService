@@ -26,12 +26,15 @@ where TRequest : notnull
             .WhenAll(
                 _validators.Select(v => v.ValidateAsync(context, cancellationToken)));
 
-        var error = validationResults
+        var failures = validationResults
             .SelectMany(r => r.Errors)
-            .FirstOrDefault(r => r != null);
+            .Where(f => f != null)
+            .GroupBy(f => f.PropertyName)
+            .Select(g => g.First())
+            .ToList();
 
-        if (error is not null)
-            throw new ValidationException([error]);
+        if (failures.Count == 0)
+            throw new ValidationException(failures);
 
 
         return await next(cancellationToken);
