@@ -31,22 +31,18 @@ public class AccountRepository : BaseRepository<Account>, IAccountRepository
         return await Task.FromResult(true);
     }
 
-    public async Task<bool> UpdateInterestRate(Account account, CancellationToken cancellationToken)
+    public async Task<bool> UpdateAccount(Account account, CancellationToken cancellationToken)
     {
         var res = DbSet.FirstOrDefault(x => x.Id == account.Id);
 
         if (res == null) return await Task.FromResult(false);
 
         res.InterestRate = account.InterestRate;
+        res.Balance = account.Balance;
 
         // .ExecuteUpdateAsync(s => 
         //     s.SetProperty(a => a.InterestRate, account.InterestRate), cancellationToken);
 
         return await Task.FromResult(true);
-    }
-
-    public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken)
-    {
-        return await Task.FromResult(DbSet.Any(a => a.Id == id));
     }
 }

@@ -23,5 +23,29 @@ public class MakeTransactionsCommandValidator : AbstractValidator<MakeTransactio
             .NotEmpty()
             .Must(currencyService.IsValidCurrency)
             .WithMessage("Currency must be a 3-letter ISO code.");
+
+        RuleFor(x => x.CounterpartyAccountId)
+            .MustAsync(async (id, token) =>
+            {
+                if (id is not null)
+                    return await accountRepository.ExistsAsync(id ?? Guid.Empty, token);
+                return true;
+            })
+            .WithMessage("Counterparty account does not exist")
+            .MustAsync(async (x, token) =>
+            {
+                var account = await accountRepository.GetByIdAsync(x ?? Guid.Empty, token);
+                return account?.ClosingDate is null;
+            })
+            .WithMessage("You cannot make transactions to closed account");
+
+        RuleFor(x => x.AccountId)
+            .MustAsync(async (x, token) =>
+            {
+                var account = await accountRepository.GetByIdAsync(x, token);
+                return account?.ClosingDate is null;
+            })
+            .WithMessage("You cannot make transactions from closed account");
+
     }
 }

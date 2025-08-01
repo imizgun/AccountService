@@ -140,7 +140,14 @@ public class AccountController : ControllerBase
         [FromBody] CreateTransactionRequest request,
         CancellationToken cancellationToken)
     {
-        var command = new MakeTransactionCommand(id, request.CounterpartyAccountId, request.Currency, request.Amount, request.Description);
+        var command = new MakeTransactionCommand(
+            id,
+            request.CounterpartyAccountId,
+            request.TransactionType,
+            request.Currency,
+            request.Amount,
+            request.Description);
+
         var result = await _mediator.Send(command, cancellationToken);
 
         return result == Guid.Empty ? BadRequest(new CreateResponse(result)) : Ok(new CreateResponse(result));
@@ -187,6 +194,6 @@ public class AccountController : ControllerBase
         var command = new UpdateTransactionCommand(transactionId, request.Description);
         var res = await _mediator.Send(command, cancellationToken);
 
-        return res ? BadRequest(new SimpleResponse("Update failed")) : Ok(new SimpleResponse("Updated successfully"));
+        return !res ? BadRequest(new SimpleResponse("Update failed")) : Ok(new SimpleResponse("Updated successfully"));
     }
 }

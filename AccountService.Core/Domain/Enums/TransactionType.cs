@@ -2,6 +2,13 @@
 
 public enum TransactionType
 {
+    /// <summary>
+    /// Зачисление
+    /// </summary>
     Credit,
+
+    /// <summary>
+    /// Снятие
+    /// </summary>
     Debit
 }

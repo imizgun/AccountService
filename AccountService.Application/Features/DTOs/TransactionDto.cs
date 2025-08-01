@@ -10,4 +10,5 @@ public class TransactionDto
     public string TransactionType { get; set; } = null!;
     public string Description { get; set; } = null!;
     public DateTime TransactionDate { get; set; }
+    public bool IsDeleted { get; set; }
 }

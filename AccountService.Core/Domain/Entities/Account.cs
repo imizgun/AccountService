@@ -25,7 +25,7 @@ public class Account : IIdentifiable
     public DateTime OpeningDate { get; set; }
     public DateTime? ClosingDate { get; set; }
 
-    public List<Transaction> Transactions { get; set; } = new();
+    public List<Transaction> Transactions { get; set; } = [];
 
     public Account() { }
 
@@ -60,7 +60,7 @@ public class Account : IIdentifiable
     {
         if (amount > Balance) throw new InvalidOperationException("Insufficient funds.");
 
-        return true;
+        return amount > 0;
     }
 
     public void Withdraw(decimal amount)

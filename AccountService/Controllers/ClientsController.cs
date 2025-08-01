@@ -14,6 +14,11 @@ public class ClientsController : ControllerBase
         _clientService = clientService;
     }
 
+    /// <summary>
+    /// Контроллер для получения списка ID пользователей для регистрации счетов
+    /// </summary>
+    /// <returns>Список ID пользователей</returns>
+    /// <response code="200">Список пользователей</response>
     [HttpGet]
     public ActionResult<List<Guid>> GetClientIds()
     {

@@ -20,6 +20,6 @@ public class UpdateAccountCommandHandler : IRequestHandler<UpdateAccountCommand,
 
         account.InterestRate = request.InterestRate;
 
-        return await _accountRepository.UpdateInterestRate(account, cancellationToken);
+        return await _accountRepository.UpdateAccount(account, cancellationToken);
     }
 }

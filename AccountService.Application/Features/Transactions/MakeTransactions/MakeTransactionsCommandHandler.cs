@@ -18,39 +18,46 @@ public class MakeTransactionsCommandHandler : IRequestHandler<MakeTransactionCom
 
     public async Task<Guid> Handle(MakeTransactionCommand request, CancellationToken cancellationToken)
     {
-        if (request.CounterpartyAccountId is not null)
-        {
-            var exists =
-                await _accountRepository.ExistsAsync(request.CounterpartyAccountId ?? Guid.Empty, cancellationToken);
-            if (!exists) throw new InvalidOperationException($"Account with id {request.CounterpartyAccountId} does not exist");
-        }
+        if (request.AccountId == request.CounterpartyAccountId)
+            throw new InvalidOperationException("You can't make transactions to the same account");
 
-        var account = await _accountRepository.GetByIdAsync(request.AccountId, cancellationToken);
-        var counterpartyAccount = await _accountRepository.GetByIdAsync(request.CounterpartyAccountId ?? Guid.Empty, cancellationToken);
+        if (!Enum.TryParse<TransactionType>(request.TransactionType, out var transactionType))
+            throw new InvalidOperationException("Transaction type is not valid");
 
-        if (account == null) return Guid.Empty;
+        var account = await _accountRepository.GetByIdAsync(request.AccountId, cancellationToken)
+                      ?? throw new InvalidOperationException("Account not found");
+
+        var counterpartyAccount = request.CounterpartyAccountId is not null
+            ? await _accountRepository.GetByIdAsync(request.CounterpartyAccountId.Value, cancellationToken)
+            : null;
+
+        if (transactionType == TransactionType.Credit && counterpartyAccount is not null)
+            throw new InvalidOperationException("You can't do credit from other account");
 
         // Transaction
-        account.Withdraw(request.Amount);
-
         var transaction = Transaction.Create(
             request.AccountId,
             request.CounterpartyAccountId,
             request.Amount,
             request.Currency,
-            TransactionType.Debit,
+            transactionType,
             request.Description
         );
 
-        var transactionId = await _transactionRepository.CreateAsync(transaction, cancellationToken);
+        if (transactionType == TransactionType.Debit)
+            account.Withdraw(request.Amount);
+        else
+            account.Deposit(request.Amount);
 
-        try
-        {
-            var counterpartyTransaction = transaction.GetReverseTransaction();
-            counterpartyAccount?.Deposit(request.Amount);
-            await _transactionRepository.CreateAsync(counterpartyTransaction, cancellationToken);
-        }
-        catch (InvalidOperationException) { }
+        var transactionId = await _transactionRepository.CreateAsync(transaction, cancellationToken);
+        await _accountRepository.UpdateAccount(account, cancellationToken);
+
+        if (counterpartyAccount is null) return transactionId;
+
+        var counterpartyTransaction = transaction.GetReverseTransaction();
+        counterpartyAccount.Deposit(request.Amount);
+        await _transactionRepository.CreateAsync(counterpartyTransaction, cancellationToken);
+        await _accountRepository.UpdateAccount(counterpartyAccount, cancellationToken);
 
         return transactionId;
         // Transaction end

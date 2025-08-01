@@ -17,5 +17,4 @@ public class DeleteTransactionCommandHandler : IRequestHandler<DeleteTransaction
         return await _transactionRepository
             .DeleteTransactionByIdAsync(request.TransactionId, cancellationToken);
     }
-
 }
