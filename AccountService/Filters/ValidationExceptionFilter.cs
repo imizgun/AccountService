@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using AccountService.Responses;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
@@ -10,11 +11,7 @@ public class ValidationExceptionFilter : IExceptionFilter
     {
         if (context.Exception is not ValidationException validationException) return;
 
-        var problemDetails = new ValidationProblemDetails
-        {
-            Title = validationException.Message,
-            Status = StatusCodes.Status400BadRequest
-        };
+        var problemDetails = new SimpleResponse(validationException.Message);
 
         context.Result = new BadRequestObjectResult(problemDetails);
         context.ExceptionHandled = true;
