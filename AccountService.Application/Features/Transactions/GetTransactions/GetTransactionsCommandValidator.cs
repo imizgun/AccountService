@@ -1,14 +1,16 @@
-﻿using FluentValidation;
+﻿using AccountService.Core.Domain.Abstraction;
+using FluentValidation;
 
 namespace AccountService.Application.Features.Transactions.GetTransactions;
 
 public class GetTransactionsCommandValidator : AbstractValidator<GetTransactionsCommand>
 {
-    public GetTransactionsCommandValidator()
+    public GetTransactionsCommandValidator(IAccountRepository accountRepository)
     {
         RuleFor(t => t.AccountId)
             .NotEmpty()
-            .WithMessage("Account ID cannot be empty.");
+            .WithMessage("Account ID cannot be empty.")
+            .MustAsync(async (x, token) => await accountRepository.ExistsAsync(x, token));
 
         RuleFor(t => t.Take)
             .GreaterThan(0)
