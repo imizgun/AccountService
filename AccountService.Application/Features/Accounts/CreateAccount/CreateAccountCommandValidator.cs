@@ -21,11 +21,12 @@ public class CreateAccountCommandValidator : AbstractValidator<CreateAccountComm
             .Must(currencyService.IsValidCurrency)
             .WithMessage("Currency must be a valid currency");
 
-        RuleFor(x => x.OwnerId)
-            .NotEmpty()
-            .WithMessage("OwnerId cannot be empty")
-            .Must(clientService.IsClientExists)
-            .WithMessage("Owner does not exist");
+        // Поскольку юзеры проверяются теперь из JWT, это излишне
+        // RuleFor(x => x.OwnerId)
+        //     .NotEmpty()
+        //     .WithMessage("OwnerId cannot be empty")
+        //     .Must(clientService.IsClientExists)
+        //     .WithMessage("Owner does not exist");
     }
 
     private static bool BeValidAccountType(string accountType)

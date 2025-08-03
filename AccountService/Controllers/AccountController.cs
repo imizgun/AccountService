@@ -1,4 +1,5 @@
-﻿using AccountService.Application.Features.Accounts.CreateAccount;
+﻿using System.Security.Claims;
+using AccountService.Application.Features.Accounts.CreateAccount;
 using AccountService.Application.Features.Accounts.DeleteAccount;
 using AccountService.Application.Features.DTOs;
 using AccountService.Application.Features.Accounts.GetAccount;
@@ -10,11 +11,13 @@ using AccountService.Application.Features.Transactions.UpdateTransaction;
 using AccountService.Requests;
 using AccountService.Responses;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AccountService.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("/api/accounts")]
 public class AccountController : ControllerBase
 {
@@ -29,14 +32,18 @@ public class AccountController : ControllerBase
     /// <summary>
     /// Возвращает список всех аккаунтов для клиента с ID OwnerId.
     /// </summary>
-    /// <param name="ownerId">ID клиента</param>
     /// <param name="cancellationToken"></param>
     /// <returns>Список всех клиентов</returns>
     /// <response code="200">Возвращает список аккаунтов</response>
     /// <response code="400">Некорректный запрос или ошибка на сервере</response>
     [HttpGet]
-    public async Task<ActionResult<MbResult<List<AccountDto>>>> GetAccountsByOwner([FromQuery] Guid ownerId, CancellationToken cancellationToken)
+    public async Task<ActionResult<MbResult<List<AccountDto>>>> GetAccountsByOwner(CancellationToken cancellationToken)
     {
+        var sub = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!Guid.TryParse(sub, out var ownerId))
+            return BadRequest(MbResult<List<AccountDto>>.Fail("Invalid user ID format"));
+
         var query = new GetAccountsByOwnerQuery(ownerId);
         var result = await _mediator.Send(query, cancellationToken);
 
@@ -44,17 +51,29 @@ public class AccountController : ControllerBase
     }
 
 
+
     /// <summary>
     /// Создает новый аккаунт для клиента
     /// </summary>
-    /// <param name="command">Данные для создания счета</param>
+    /// <param name="request">Данные для создания счета</param>
     /// <param name="cancellationToken"></param>
     /// <returns>ID открытого счета</returns>
     /// <response code="200">Аккаунт успешно создан</response>
     /// <response code="400">Некорректный запрос или ошибка на сервере</response>
     [HttpPost]
-    public async Task<ActionResult<MbResult<Guid>>> CreateAccount([FromBody] CreateAccountCommand command, CancellationToken cancellationToken)
-    {
+    public async Task<ActionResult<MbResult<Guid>>> CreateAccount([FromBody] CreateAccountRequest request, CancellationToken cancellationToken) {
+        var sub = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (!Guid.TryParse(sub, out var ownerId))
+            return BadRequest(MbResult<List<AccountDto>>.Fail("Invalid user ID format"));
+        
+        var command = new CreateAccountCommand(
+                ownerId,
+                request.Currency,
+                request.AccountType,
+                request.InterestRate
+            );
+        
         var result = await _mediator.Send(command, cancellationToken);
 
         return result == Guid.Empty ? 

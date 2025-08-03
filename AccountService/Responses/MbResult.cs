@@ -21,6 +21,8 @@ public class MbResult<T>
 	/// Сообщение об исходе операции
 	/// </summary>
 	public string? Message { get; init; }
+	
+	public MbError? MbError { get; init; }
 
 	/// <summary>
 	/// Успешная операция
@@ -44,6 +46,21 @@ public class MbResult<T>
 	{
 		IsSuccess = false,
 		Result = default,
-		Message = message
+		Message = message,
+		MbError = new MbError {
+			Message = message
+		}
+	};
+	
+	public static MbResult<T> ValidationFail(List<string> validationErrors) => new()
+	{
+		IsSuccess = false,
+		Result = default,
+		Message = "Validation failed",
+		MbError = new MbError
+		{
+			Message = "One or more validation errors occurred.",
+			ValidationErrors = validationErrors
+		}
 	};
 }
