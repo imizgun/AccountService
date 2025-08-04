@@ -5,7 +5,7 @@ namespace AccountService.Application.Services.Services;
 
 public class CurrencyService : ICurrencyService
 {
-    private HashSet<string> _currencies = [];
+    private readonly HashSet<string> _currencies = [];
 
     public CurrencyService()
     {

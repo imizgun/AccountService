@@ -6,9 +6,9 @@ namespace AccountService.Application.Features.Accounts.CreateAccount;
 
 public class CreateAccountCommandValidator : AbstractValidator<CreateAccountCommand>
 {
-    public CreateAccountCommandValidator(ICurrencyService currencyService, IClientService clientService)
+    public CreateAccountCommandValidator(ICurrencyService currencyService)
     {
-        
+
         RuleFor(x => x.AccountType)
             .NotEmpty()
             .WithMessage("AccountType cannot be empty")

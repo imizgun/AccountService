@@ -16,17 +16,6 @@ public class TransactionRepository : BaseRepository<Transaction>, ITransactionRe
         return await Task.FromResult(res);
     }
 
-    public async Task<List<Transaction>> GetAllFromClientAsync(Guid clientId, int pageNumber, int pageSize, CancellationToken cancellationToken)
-    {
-        var res = DbSet.Where(t => t.AccountId == clientId)
-            .OrderByDescending(t => t.TransactionDate)
-            .Skip(pageNumber * pageSize)
-            .Take(pageSize)
-            .ToList();
-
-        return await Task.FromResult(res);
-    }
-
     public async Task<bool> DeleteTransactionByIdAsync(Guid transactionId, CancellationToken cancellationToken)
     {
         var transaction = DbSet.FirstOrDefault(x => x.Id == transactionId);

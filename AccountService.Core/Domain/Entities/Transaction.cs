@@ -9,6 +9,7 @@ public class Transaction : IIdentifiable
     public Guid AccountId { get; set; }
     public Account Account { get; set; } = null!;
     public Guid? CounterpartyAccountId { get; set; }
+    // ReSharper disable once UnusedMember.Global Поле необходимо для сущности и используется в её DTO
     public Account? CounterpartyAccount { get; set; }
     public decimal Amount { get; set; }
     public string Currency { get; set; } = null!;

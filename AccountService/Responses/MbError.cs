@@ -5,10 +5,10 @@
 /// </summary>
 public class MbError
 {
-	public string? Message { get; init; }
+    public string? Message { get; init; }
 
-	/// <summary>
-	/// Ошибки валидации
-	/// </summary>
-	public List<string>? ValidationErrors { get; init; }
+    /// <summary>
+    /// Ошибки валидации
+    /// </summary>
+    public List<string>? ValidationErrors { get; init; }
 }

@@ -5,17 +5,8 @@ using MediatR;
 
 namespace AccountService.Application.Features.Transactions.MakeTransactions;
 
-public class MakeTransactionsCommandHandler : IRequestHandler<MakeTransactionCommand, Guid>
+public class MakeTransactionsCommandHandler(ITransactionRepository transactionRepository, IAccountRepository accountRepository) : IRequestHandler<MakeTransactionCommand, Guid>
 {
-    private readonly ITransactionRepository _transactionRepository;
-    private readonly IAccountRepository _accountRepository;
-
-    public MakeTransactionsCommandHandler(ITransactionRepository transactionRepository, IAccountRepository accountRepository)
-    {
-        _transactionRepository = transactionRepository;
-        _accountRepository = accountRepository;
-    }
-
     public async Task<Guid> Handle(MakeTransactionCommand request, CancellationToken cancellationToken)
     {
         if (request.AccountId == request.CounterpartyAccountId)
@@ -24,11 +15,11 @@ public class MakeTransactionsCommandHandler : IRequestHandler<MakeTransactionCom
         if (!Enum.TryParse<TransactionType>(request.TransactionType, out var transactionType))
             throw new InvalidOperationException("Transaction type is not valid");
 
-        var account = await _accountRepository.GetByIdAsync(request.AccountId, cancellationToken)
+        var account = await accountRepository.GetByIdAsync(request.AccountId, cancellationToken)
                       ?? throw new InvalidOperationException("Account not found");
 
         var counterpartyAccount = request.CounterpartyAccountId is not null
-            ? await _accountRepository.GetByIdAsync(request.CounterpartyAccountId.Value, cancellationToken)
+            ? await accountRepository.GetByIdAsync(request.CounterpartyAccountId.Value, cancellationToken)
             : null;
 
         if (transactionType == TransactionType.Credit && counterpartyAccount is not null)
@@ -49,15 +40,15 @@ public class MakeTransactionsCommandHandler : IRequestHandler<MakeTransactionCom
         else
             account.Deposit(request.Amount);
 
-        var transactionId = await _transactionRepository.CreateAsync(transaction, cancellationToken);
-        await _accountRepository.UpdateAccount(account, cancellationToken);
+        var transactionId = await transactionRepository.CreateAsync(transaction, cancellationToken);
+        await accountRepository.UpdateAccount(account, cancellationToken);
 
         if (counterpartyAccount is null) return transactionId;
 
         var counterpartyTransaction = transaction.GetReverseTransaction();
         counterpartyAccount.Deposit(request.Amount);
-        await _transactionRepository.CreateAsync(counterpartyTransaction, cancellationToken);
-        await _accountRepository.UpdateAccount(counterpartyAccount, cancellationToken);
+        await transactionRepository.CreateAsync(counterpartyTransaction, cancellationToken);
+        await accountRepository.UpdateAccount(counterpartyAccount, cancellationToken);
 
         return transactionId;
         // Transaction end

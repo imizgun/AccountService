@@ -4,17 +4,11 @@ namespace AccountService.Application.Services.Services;
 
 public class ClientService : IClientService
 {
-    private List<Guid> _clients;
-
-    public ClientService()
-    {
-        _clients = [
-            Guid.NewGuid(),
-            Guid.NewGuid(),
-            Guid.NewGuid()
-        ];
-    }
-    public bool IsClientExists(Guid clientId) => _clients.Contains(clientId);
+    private readonly List<Guid> _clients = [
+        Guid.NewGuid(),
+        Guid.NewGuid(),
+        Guid.NewGuid()
+    ];
 
     public List<Guid> GetClientIds() => _clients;
 }

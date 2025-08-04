@@ -19,14 +19,8 @@ namespace AccountService.Controllers;
 [ApiController]
 [Authorize]
 [Route("/api/accounts")]
-public class AccountController : ControllerBase
+public class AccountController(IMediator mediator) : ControllerBase
 {
-    private IMediator _mediator;
-
-    public AccountController(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
 
 
     /// <summary>
@@ -36,6 +30,7 @@ public class AccountController : ControllerBase
     /// <returns>Список всех клиентов</returns>
     /// <response code="200">Возвращает список аккаунтов</response>
     /// <response code="400">Некорректный запрос или ошибка на сервере</response>
+    /// <response code="401">Необходима авторизация</response>
     [HttpGet]
     public async Task<ActionResult<MbResult<List<AccountDto>>>> GetAccountsByOwner(CancellationToken cancellationToken)
     {
@@ -45,7 +40,7 @@ public class AccountController : ControllerBase
             return BadRequest(MbResult<List<AccountDto>>.Fail("Invalid user ID format"));
 
         var query = new GetAccountsByOwnerQuery(ownerId);
-        var result = await _mediator.Send(query, cancellationToken);
+        var result = await mediator.Send(query, cancellationToken);
 
         return Ok(MbResult<List<AccountDto>>.Ok(result));
     }
@@ -60,24 +55,26 @@ public class AccountController : ControllerBase
     /// <returns>ID открытого счета</returns>
     /// <response code="200">Аккаунт успешно создан</response>
     /// <response code="400">Некорректный запрос или ошибка на сервере</response>
+    /// <response code="401">Необходима авторизация</response>
     [HttpPost]
-    public async Task<ActionResult<MbResult<Guid>>> CreateAccount([FromBody] CreateAccountRequest request, CancellationToken cancellationToken) {
+    public async Task<ActionResult<MbResult<Guid>>> CreateAccount([FromBody] CreateAccountRequest request, CancellationToken cancellationToken)
+    {
         var sub = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
         if (!Guid.TryParse(sub, out var ownerId))
             return BadRequest(MbResult<List<AccountDto>>.Fail("Invalid user ID format"));
-        
+
         var command = new CreateAccountCommand(
                 ownerId,
                 request.Currency,
                 request.AccountType,
                 request.InterestRate
             );
-        
-        var result = await _mediator.Send(command, cancellationToken);
 
-        return result == Guid.Empty ? 
-            BadRequest(MbResult<Guid>.Fail("Unknow error while creating an account...")) : 
+        var result = await mediator.Send(command, cancellationToken);
+
+        return result == Guid.Empty ?
+            BadRequest(MbResult<Guid>.Fail("Unknow error while creating an account...")) :
             Ok(MbResult<Guid>.Ok(result));
     }
 
@@ -90,11 +87,12 @@ public class AccountController : ControllerBase
     /// <returns>Сообщение, характеризующее результат операции</returns>
     /// <response code="200">Счет успешно закрыт</response>
     /// <response code="400">Некорректный запрос или ошибка на сервере</response> 
+    /// <response code="401">Необходима авторизация</response>
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult<MbResult<Guid>>> DeleteAccount(Guid id, CancellationToken cancellationToken)
     {
         var command = new DeleteAccountCommand(id);
-        var res = await _mediator.Send(command, cancellationToken);
+        var res = await mediator.Send(command, cancellationToken);
 
         return res ?
             Ok(MbResult<Guid>.Ok(id, "Deleted successfully"))
@@ -109,14 +107,15 @@ public class AccountController : ControllerBase
     /// <param name="cancellationToken"></param>
     /// <returns>Сообщение, характеризующее результат операции</returns>
     /// <response code="200">Счет успешно обновлен</response>
-    /// <response code="400">Некорректный запрос или ошибка на сервере</response> 
+    /// <response code="400">Некорректный запрос или ошибка на сервере</response>
+    /// <response code="401">Необходима авторизация</response>
     [HttpPatch("{id:guid}")]
     public async Task<ActionResult<MbResult<Guid>>> UpdateAccount(Guid id, [FromBody] UpdateAccountRequest command, CancellationToken cancellationToken)
     {
-        var res = await _mediator.Send(new UpdateAccountCommand(id, command.InterestRate), cancellationToken);
+        var res = await mediator.Send(new UpdateAccountCommand(id, command.InterestRate), cancellationToken);
 
         return res ?
-                Ok(MbResult<Guid>.Ok(id,"Updated successfully"))
+                Ok(MbResult<Guid>.Ok(id, "Updated successfully"))
                 : NotFound(MbResult<Guid>.Fail("Resource not found"));
     }
 
@@ -130,6 +129,7 @@ public class AccountController : ControllerBase
     /// <returns>Список проведенных транзакций на счету</returns>
     /// <response code="200">Возвращает список транзакций</response>
     /// <response code="400">Некорректный запрос или ошибка на сервере</response>
+    /// <response code="401">Необходима авторизация</response>
     [HttpGet("{id:guid}/transactions")]
     public async Task<ActionResult<MbResult<List<TransactionDto>>>> GetTransactionsByAccountId(
         Guid id,
@@ -140,7 +140,7 @@ public class AccountController : ControllerBase
         var notNullSkip = skip ?? 0;
         var notNullTake = take ?? 10;
 
-        var result = await _mediator.Send(new GetTransactionsCommand(id, notNullTake, notNullSkip), cancellationToken);
+        var result = await mediator.Send(new GetTransactionsCommand(id, notNullTake, notNullSkip), cancellationToken);
 
         return Ok(MbResult<List<TransactionDto>>.Ok(result));
     }
@@ -155,6 +155,7 @@ public class AccountController : ControllerBase
     /// <returns>ID созданной транзакции</returns>
     /// <response code="200">Возвращает ID созданной транзакции</response>
     /// <response code="400">Некорректный запрос или ошибка на сервере</response>
+    /// <response code="401">Необходима авторизация</response>
     [HttpPost("{id:guid}/transactions")]
     public async Task<ActionResult<MbResult<Guid>>> CreateTransaction(
         Guid id,
@@ -169,10 +170,10 @@ public class AccountController : ControllerBase
             request.Amount,
             request.Description);
 
-        var result = await _mediator.Send(command, cancellationToken);
+        var result = await mediator.Send(command, cancellationToken);
 
-        return result == Guid.Empty ? 
-            BadRequest(MbResult<Guid>.Fail("Error while creating transaction")) : 
+        return result == Guid.Empty ?
+            BadRequest(MbResult<Guid>.Fail("Error while creating transaction")) :
             Ok(MbResult<Guid>.Ok(result, "Transaction created successfully"));
     }
 
@@ -186,11 +187,12 @@ public class AccountController : ControllerBase
     /// <returns>Сообщение, успешно ли прошло удаление</returns>
     /// <response code="200">Успешное удаление</response>
     /// <response code="400">Некорректный запрос или ошибка на сервере</response>
+    /// <response code="401">Необходима авторизация</response>
     [HttpDelete("{id:guid}/transactions/{transactionId:guid}")]
     public async Task<ActionResult<MbResult<Guid>>> DeleteTransaction(Guid id, Guid transactionId, CancellationToken cancellationToken)
     {
         var command = new DeleteTransactionCommand(transactionId);
-        var res = await _mediator.Send(command, cancellationToken);
+        var res = await mediator.Send(command, cancellationToken);
 
         return res ?
             Ok(MbResult<Guid>.Ok(transactionId, "Deleted successfully"))
@@ -207,6 +209,7 @@ public class AccountController : ControllerBase
     /// <returns>Сообщение, успешно ли прошло обновление</returns>
     /// <response code="200">Успешное обновление</response>
     /// <response code="400">Некорректный запрос или ошибка на сервере</response>
+    /// <response code="401">Необходима авторизация</response>
     [HttpPatch("{id:guid}/transactions/{transactionId:guid}")]
     public async Task<ActionResult<MbResult<Guid>>> UpdateTransaction(
         Guid id,
@@ -215,10 +218,10 @@ public class AccountController : ControllerBase
         CancellationToken cancellationToken)
     {
         var command = new UpdateTransactionCommand(transactionId, request.Description);
-        var res = await _mediator.Send(command, cancellationToken);
+        var res = await mediator.Send(command, cancellationToken);
 
-        return !res ? 
-            BadRequest(MbResult<Guid>.Fail("Update failed")) : 
+        return !res ?
+            BadRequest(MbResult<Guid>.Fail("Update failed")) :
             Ok(MbResult<Guid>.Ok(transactionId, "Updated successfully"));
     }
 }

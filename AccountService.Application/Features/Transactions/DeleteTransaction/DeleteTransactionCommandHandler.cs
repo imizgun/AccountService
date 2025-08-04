@@ -3,18 +3,11 @@ using MediatR;
 
 namespace AccountService.Application.Features.Transactions.DeleteTransaction;
 
-public class DeleteTransactionCommandHandler : IRequestHandler<DeleteTransactionCommand, bool>
+public class DeleteTransactionCommandHandler(ITransactionRepository transactionRepository) : IRequestHandler<DeleteTransactionCommand, bool>
 {
-    private readonly ITransactionRepository _transactionRepository;
-
-    public DeleteTransactionCommandHandler(ITransactionRepository transactionRepository)
-    {
-        _transactionRepository = transactionRepository;
-    }
-
     public async Task<bool> Handle(DeleteTransactionCommand request, CancellationToken cancellationToken)
     {
-        return await _transactionRepository
+        return await transactionRepository
             .DeleteTransactionByIdAsync(request.TransactionId, cancellationToken);
     }
 }

@@ -10,6 +10,7 @@ using AccountService.Responses;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,7 +24,7 @@ builder.Services.AddSwaggerGen(c =>
 
     c.IncludeXmlComments(mainXml);
     c.IncludeXmlComments(appXml);
-    
+
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "Введите токен в формате: Bearer {your JWT token}",
@@ -53,9 +54,14 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.Authority = "http://localhost:8888/realms/account_service";
-        options.Audience = "account";
+        options.Authority = builder.Configuration["JwtSettings:Authority"];
+        options.Audience = builder.Configuration["JwtSettings:Audience"];
         options.RequireHttpsMetadata = false;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
     });
 builder.Services.AddAuthorization();
 
@@ -99,12 +105,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.MapOpenApi();
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseCors(c => c
     .AllowAnyHeader()

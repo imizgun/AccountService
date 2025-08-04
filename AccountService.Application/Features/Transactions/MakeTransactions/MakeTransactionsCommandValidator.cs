@@ -4,6 +4,8 @@ using FluentValidation;
 
 namespace AccountService.Application.Features.Transactions.MakeTransactions;
 
+
+// ReSharper disable once UnusedMember.Global Валидатор неявно используется в пайплайне
 public class MakeTransactionsCommandValidator : AbstractValidator<MakeTransactionCommand>
 {
     public MakeTransactionsCommandValidator(ICurrencyService currencyService, IAccountRepository accountRepository)
@@ -28,6 +30,7 @@ public class MakeTransactionsCommandValidator : AbstractValidator<MakeTransactio
             .MustAsync(async (id, token) =>
             {
                 if (id is not null)
+                    // ReSharper disable once ConstantNullCoalescingCondition Если убрать ?? будет ошибка компиляции из-за несоответствия nullable и обычного типов
                     return await accountRepository.ExistsAsync(id ?? Guid.Empty, token);
                 return true;
             })

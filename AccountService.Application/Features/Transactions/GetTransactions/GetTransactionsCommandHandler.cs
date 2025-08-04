@@ -5,25 +5,16 @@ using MediatR;
 
 namespace AccountService.Application.Features.Transactions.GetTransactions;
 
-public class GetTransactionsCommandHandler : IRequestHandler<GetTransactionsCommand, List<TransactionDto>>
+public class GetTransactionsCommandHandler(ITransactionRepository transactionRepository, IMapper mapper) : IRequestHandler<GetTransactionsCommand, List<TransactionDto>>
 {
-    private ITransactionRepository _transactionRepository;
-    private IMapper _mapper;
-
-    public GetTransactionsCommandHandler(ITransactionRepository transactionRepository, IMapper mapper)
-    {
-        _transactionRepository = transactionRepository;
-        _mapper = mapper;
-    }
-
     public async Task<List<TransactionDto>> Handle(GetTransactionsCommand request, CancellationToken cancellationToken)
     {
-        var res = await _transactionRepository
+        var res = await transactionRepository
             .GetAllFromAccountAsync(
                 request.AccountId,
                 request.SkipPage,
                 request.Take, cancellationToken);
 
-        return _mapper.Map<List<TransactionDto>>(res);
+        return mapper.Map<List<TransactionDto>>(res);
     }
 }
