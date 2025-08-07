@@ -5,15 +5,8 @@ using MediatR;
 
 namespace AccountService.Application.Features.Accounts.CreateAccount;
 
-public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand, Guid>
+public class CreateAccountCommandHandler(IAccountRepository accountRepository) : IRequestHandler<CreateAccountCommand, Guid>
 {
-    private readonly IAccountRepository _accountRepository;
-
-    public CreateAccountCommandHandler(IAccountRepository accountRepository)
-    {
-        _accountRepository = accountRepository;
-    }
-
     public async Task<Guid> Handle(CreateAccountCommand request, CancellationToken cancellationToken)
     {
         if (!Enum.TryParse<AccountType>(request.AccountType, true, out var type))
@@ -26,6 +19,6 @@ public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand,
             request.InterestRate
             );
 
-        return await _accountRepository.CreateAsync(newAccount, cancellationToken);
+        return await accountRepository.CreateAsync(newAccount, cancellationToken);
     }
 }

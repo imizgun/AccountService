@@ -3,6 +3,7 @@ using FluentValidation;
 
 namespace AccountService.Application.Features.Transactions.GetTransactions;
 
+// ReSharper disable once UnusedMember.Global Валидатор неявно используется в Пайплайне
 public class GetTransactionsCommandValidator : AbstractValidator<GetTransactionsCommand>
 {
     public GetTransactionsCommandValidator(IAccountRepository accountRepository)

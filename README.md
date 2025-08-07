@@ -136,3 +136,60 @@
   "message": "string"
 }
 ```
+
+---
+# Изменения во втором задании
+## 1. Все ответы API теперь формата `MbResult`:
+```
+{
+  "isSuccess": true,            // флаг успешности операции
+  "result": operationResult,    // тело ответа
+  "message": "string",          // сообщение
+  "mbError": {                  // mbError с более подробным описание
+    "message": "string",        // сообщение ошибки
+    "validationErrors": [
+      "string"                  // массив ошибок
+    ]
+  }
+}
+```
+
+## 2. Два зарегестрированных юзера в Keycloak
+Keycloak используется как сервер авторизации, доступны два юзера:
+```
+username: violetta
+password: 123
+```
+
+```
+username: johnprok
+password: 123
+```
+
+другие важные поля для Keycloak:
+```
+{
+    client_id: aspnet-api,
+    client_secret: 9qKJ6qvOOOnlbg1uZoSbtIIHk7Elaxik,
+    grant_type: password
+}
+```
+
+## 3. Запуск приложения
+### 3.1 Через docker-compose
+Из корневой папки репозитория введите команду: `docker-compose up --build -d`, после чего немного подождите, прежде чем Keycloak настроится (обычно около 20 секунд).\
+Затем из Postman или другого удобного инструмента отправьте запрос на `http://localhost:8888/realms/account_service/protocol/openid-connect/token`
+с телом типа `x-www-form-urlenconded`: 
+```
+{
+    client_id: aspnet-api,
+    client_secret: 9qKJ6qvOOOnlbg1uZoSbtIIHk7Elaxik,
+    grant_type: password,
+    username: <выбранный_юзернейм>,
+    password: <пароль_юзера>
+}
+```
+после этого скопируйте `accessToken` и вставьте его в `swagger` по адресу `http://localhost:5149/swagger` в форму авторизации, чтобы иметь возможность обращаться к API.
+
+### 3.2 Через VS 2022 в контейнере с дебагом
+В VS 2022 выберите профиль Docker Compose и запустите его в режиме дебага (F5)

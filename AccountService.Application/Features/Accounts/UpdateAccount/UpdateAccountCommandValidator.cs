@@ -2,6 +2,7 @@
 
 namespace AccountService.Application.Features.Accounts.UpdateAccount;
 
+// ReSharper disable once UnusedMember.Global Валидатор неявно используется в Пайплайне
 public class UpdateAccountCommandValidator : AbstractValidator<UpdateAccountCommand>
 {
     public UpdateAccountCommandValidator()

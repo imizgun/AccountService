@@ -1,4 +1,3 @@
-using System.Reflection;
 using AccountService;
 using AccountService.Application.Behaviors;
 using AccountService.Application.Features.Accounts.CreateAccount;
@@ -7,8 +6,12 @@ using AccountService.Application.Services.Services;
 using AccountService.Core.Domain.Abstraction;
 using AccountService.DatabaseAccess.Repositories;
 using AccountService.Filters;
+using AccountService.Responses;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,10 +19,51 @@ builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    var xml = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xml);
-    c.IncludeXmlComments(xmlPath);
+    var mainXml = Path.Combine(AppContext.BaseDirectory, "AccountService.xml");
+    var appXml = Path.Combine(AppContext.BaseDirectory, "AccountService.Application.xml");
+
+    c.IncludeXmlComments(mainXml);
+    c.IncludeXmlComments(appXml);
+
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "Введите токен в формате: Bearer {your JWT token}",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            []
+        }
+    });
 });
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = builder.Configuration["JwtSettings:Authority"];
+        options.Audience = builder.Configuration["JwtSettings:Audience"];
+        options.RequireHttpsMetadata = false;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+builder.Services.AddAuthorization();
 
 builder.Services.AddControllers(options =>
 {
@@ -52,19 +96,24 @@ app.Use(async (context, next) =>
     catch (Exception ex)
     {
         context.Response.StatusCode = 400;
-        await context.Response.WriteAsJsonAsync(new { error = ex.Message });
+        await context.Response.WriteAsJsonAsync(MbResult<object>.Fail(ex.Message));
     }
 });
 
 app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.MapOpenApi();
+app.UseSwagger();
+app.UseSwaggerUI();
+
+app.UseCors(c => c
+    .AllowAnyHeader()
+    .AllowAnyOrigin()
+    .AllowAnyMethod()
+    );
 
 app.UseHttpsRedirection();
 app.Run();

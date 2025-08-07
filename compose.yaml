@@ -1,0 +1,34 @@
+﻿services:
+  accountservice:
+    build:
+      context: .
+      dockerfile: AccountService/Dockerfile
+    container_name: account-service-backend
+    environment:   
+      - ASPNETCORE_URLS=http://+:80
+      - JwtSettings__Authority=http://keycloak:8888/realms/account_service
+      - JwtSettings__Audience=account
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "5149:80"
+    depends_on:
+      - keycloak
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: keycloak
+    command: start-dev --import-realm
+    ports:
+      - "8888:8888"
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HTTP_PORT: 8888
+      KC_HOSTNAME: keycloak
+      KC_HOSTNAME_URL: http://keycloak:8888
+      KC_HOSTNAME_STRICT: true
+      KC_HOSTNAME_ADMIN_URL: http://localhost:8888
+    volumes:
+      - ./account_service-realm.json:/opt/keycloak/data/import/account_service-realm.json
+volumes:
+  keycloak-data:

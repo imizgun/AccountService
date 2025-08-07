@@ -3,6 +3,7 @@ using FluentValidation;
 
 namespace AccountService.Application.Features.Transactions.DeleteTransaction;
 
+// ReSharper disable once UnusedMember.Global Валидатор неявно используется в Пайплайне
 public class DeleteTransactionCommandValidator : AbstractValidator<DeleteTransactionCommand>
 {
     public DeleteTransactionCommandValidator(ITransactionRepository transactionRepository)

@@ -11,7 +11,9 @@ public class ValidationExceptionFilter : IExceptionFilter
     {
         if (context.Exception is not ValidationException validationException) return;
 
-        var problemDetails = new SimpleResponse(validationException.Message);
+        var problemDetails = MbResult<string>.ValidationFail(
+            validationException.Errors
+                .Select(x => x.ToString()).ToList());
 
         context.Result = new BadRequestObjectResult(problemDetails);
         context.ExceptionHandled = true;
