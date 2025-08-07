@@ -1,5 +1,5 @@
 ﻿// ReSharper disable UnusedMember.Global Якобы ненужные, по мнению линтера, поля необходимы для представления сущности и используются в маппинге
-namespace AccountService.Application.Features.DTOs;
+namespace AccountService.Application.DTOs;
 
 
 /// <summary>

@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
+using AccountService.Application.DTOs;
 using AccountService.Application.Features.Accounts.CreateAccount;
 using AccountService.Application.Features.Accounts.DeleteAccount;
-using AccountService.Application.Features.DTOs;
 using AccountService.Application.Features.Accounts.GetAccount;
 using AccountService.Application.Features.Accounts.UpdateAccount;
 using AccountService.Application.Features.Transactions.DeleteTransaction;

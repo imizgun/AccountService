@@ -1,22 +1,21 @@
 ﻿using AccountService.Core.Domain.Abstraction;
+using Microsoft.EntityFrameworkCore;
 
 namespace AccountService.DatabaseAccess.Repositories;
 
-public class BaseRepository<T> : IBaseRepository<T> where T : class, IIdentifiable
+public class BaseRepository<T>(AccountServiceDbContext context) : IBaseRepository<T> where T : class, IIdentifiable
 {
-    // protected AccountServiceDbContext Context = context;
-    // protected DbSet<T> DbSet => Context.Set<T>();
-    protected readonly List<T> DbSet = [];
+    protected DbSet<T> DbSet => context.Set<T>();
 
     public async Task<Guid> CreateAsync(T obj, CancellationToken cancellationToken)
     {
-        var lengthBefore = DbSet.Count;
-        DbSet.Add(obj);
-        return DbSet.Count > lengthBefore ? await Task.FromResult(obj.Id) : await Task.FromResult(Guid.Empty);
+        await DbSet.AddAsync(obj, cancellationToken);
+        var res = await context.SaveChangesAsync(cancellationToken);
+        return res > 0 ? obj.Id : Guid.Empty;
     }
 
     public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken)
     {
-        return await Task.FromResult(DbSet.Any(x => x.Id == id));
+        return await DbSet.AnyAsync(x => x.Id == id, cancellationToken);
     }
 }

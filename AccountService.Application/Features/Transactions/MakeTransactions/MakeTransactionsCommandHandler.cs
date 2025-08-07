@@ -5,7 +5,10 @@ using MediatR;
 
 namespace AccountService.Application.Features.Transactions.MakeTransactions;
 
-public class MakeTransactionsCommandHandler(ITransactionRepository transactionRepository, IAccountRepository accountRepository) : IRequestHandler<MakeTransactionCommand, Guid>
+public class MakeTransactionsCommandHandler(
+    ITransactionRepository transactionRepository, 
+    IAccountRepository accountRepository,
+    IUnitOfWork unitOfWork) : IRequestHandler<MakeTransactionCommand, Guid>
 {
     public async Task<Guid> Handle(MakeTransactionCommand request, CancellationToken cancellationToken)
     {
@@ -25,32 +28,46 @@ public class MakeTransactionsCommandHandler(ITransactionRepository transactionRe
         if (transactionType == TransactionType.Credit && counterpartyAccount is not null)
             throw new InvalidOperationException("You can't do credit from other account");
 
-        // Transaction
-        var transaction = Transaction.Create(
-            request.AccountId,
-            request.CounterpartyAccountId,
-            request.Amount,
-            request.Currency,
-            transactionType,
-            request.Description
-        );
+        // Transaction start
+        await unitOfWork.BeginTransactionAsync(cancellationToken);
 
-        if (transactionType == TransactionType.Debit)
-            account.Withdraw(request.Amount);
-        else
-            account.Deposit(request.Amount);
+        try 
+        {
+            var transaction = Transaction.Create(
+                request.AccountId,
+                request.CounterpartyAccountId,
+                request.Amount,
+                request.Currency,
+                transactionType,
+                request.Description
+            );
 
-        var transactionId = await transactionRepository.CreateAsync(transaction, cancellationToken);
-        await accountRepository.UpdateAccount(account, cancellationToken);
+            if (transactionType == TransactionType.Debit)
+                account.Withdraw(request.Amount);
+            else
+                account.Deposit(request.Amount);
 
-        if (counterpartyAccount is null) return transactionId;
+            var transactionId = await transactionRepository.CreateAsync(transaction, cancellationToken);
+            await accountRepository.UpdateAccount(account, cancellationToken);
 
-        var counterpartyTransaction = transaction.GetReverseTransaction();
-        counterpartyAccount.Deposit(request.Amount);
-        await transactionRepository.CreateAsync(counterpartyTransaction, cancellationToken);
-        await accountRepository.UpdateAccount(counterpartyAccount, cancellationToken);
+            if (counterpartyAccount is not null) 
+            {
+                var counterpartyTransaction = transaction.GetReverseTransaction();
+                counterpartyAccount.Deposit(request.Amount);
+                await transactionRepository.CreateAsync(counterpartyTransaction, cancellationToken);
+                await accountRepository.UpdateAccount(counterpartyAccount, cancellationToken);
+            }
 
-        return transactionId;
-        // Transaction end
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            await unitOfWork.CommitAsync(cancellationToken);
+            
+            return transactionId;
+            // Transaction end
+        }
+        catch (Exception ex) 
+        {
+            await unitOfWork.RollbackAsync(cancellationToken);
+            throw new InvalidOperationException("Transaction failed", ex);
+        }
     }
 }

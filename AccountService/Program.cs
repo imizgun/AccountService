@@ -4,12 +4,14 @@ using AccountService.Application.Features.Accounts.CreateAccount;
 using AccountService.Application.Services.Abstractions;
 using AccountService.Application.Services.Services;
 using AccountService.Core.Domain.Abstraction;
+using AccountService.DatabaseAccess;
 using AccountService.DatabaseAccess.Repositories;
 using AccountService.Filters;
 using AccountService.Responses;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -77,15 +79,26 @@ builder.Services.AddMediatR(cfg =>
 
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MapperProfile>());
 
-builder.Services.AddSingleton<IAccountRepository, AccountRepository>();
-builder.Services.AddSingleton<ITransactionRepository, TransactionRepository>();
-builder.Services.AddSingleton<IClientService, ClientService>();
+builder.Services.AddDbContext<AccountServiceDbContext>(opt => {
+    opt.UseNpgsql(builder.Configuration.GetConnectionString(nameof(AccountServiceDbContext)));
+});
+
+builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWorkRepository>();
+builder.Services.AddSingleton<IClientService, ClientService>(); // TODO: удалить, потому что не нужен
 builder.Services.AddSingleton<ICurrencyService, CurrencyService>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<CreateAccountCommandValidator>();
 builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope()) 
+{
+    var db = scope.ServiceProvider.GetRequiredService<AccountServiceDbContext>();
+    db.Database.Migrate();
+}
 
 app.Use(async (context, next) =>
 {

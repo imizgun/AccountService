@@ -17,6 +17,7 @@ public class Transaction : IIdentifiable
     public string Description { get; set; } = null!;
     public DateTime TransactionDate { get; set; }
     public bool IsDeleted { get; set; }
+    public const int MaxDescriptionLength = 500;
 
     public Transaction() { }
 

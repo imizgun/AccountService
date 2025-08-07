@@ -1,48 +1,49 @@
 ﻿using AccountService.Core.Domain.Abstraction;
 using AccountService.Core.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace AccountService.DatabaseAccess.Repositories;
 
-public class AccountRepository : BaseRepository<Account>, IAccountRepository
+public class AccountRepository(AccountServiceDbContext context) : BaseRepository<Account>(context), IAccountRepository
 {
     public async Task<Account?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
-        var account = DbSet.FirstOrDefault(a => a.Id == id);
+        var account = await DbSet.FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
 
-        return await Task.FromResult(account);
+        return account;
     }
 
     public async Task<List<Account>> GetAllOwnerAccounts(Guid ownerId, CancellationToken cancellationToken)
     {
-        return await Task.FromResult(DbSet.Where(a => a.OwnerId == ownerId).ToList());
+        return await DbSet.Where(a => a.OwnerId == ownerId).ToListAsync(cancellationToken);
     }
 
     public async Task<bool> CloseAccountAsync(Account account, CancellationToken cancellationToken)
     {
-        var res = DbSet.FirstOrDefault(x => x.Id == account.Id);
+        var obj = await DbSet.FirstOrDefaultAsync(x => x.Id == account.Id, cancellationToken);
 
-        if (res == null) return await Task.FromResult(false);
+        if (obj == null) return false;
 
-        res.ClosingDate = account.ClosingDate;
+        obj.ClosingDate = account.ClosingDate;
 
-        // .ExecuteUpdateAsync(s => 
-        //     s.SetProperty(a => a.ClosingDate, account.ClosingDate), cancellationToken);
+        var res = await DbSet.ExecuteUpdateAsync(s => 
+            s.SetProperty(a => a.ClosingDate, account.ClosingDate), cancellationToken);
 
-        return await Task.FromResult(true);
+        return res > 0;
     }
 
     public async Task<bool> UpdateAccount(Account account, CancellationToken cancellationToken)
     {
-        var res = DbSet.FirstOrDefault(x => x.Id == account.Id);
+        var obj = DbSet.FirstOrDefault(x => x.Id == account.Id);
 
-        if (res == null) return await Task.FromResult(false);
+        if (obj == null) return await Task.FromResult(false);
 
-        res.InterestRate = account.InterestRate;
-        res.Balance = account.Balance;
+        obj.InterestRate = account.InterestRate;
+        obj.Balance = account.Balance;
 
-        // .ExecuteUpdateAsync(s => 
-        //     s.SetProperty(a => a.InterestRate, account.InterestRate), cancellationToken);
+        var res = await DbSet.ExecuteUpdateAsync(s => 
+            s.SetProperty(a => a.InterestRate, account.InterestRate), cancellationToken);
 
-        return await Task.FromResult(true);
+        return res > 0;
     }
 }

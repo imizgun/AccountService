@@ -1,5 +1,5 @@
 ﻿// ReSharper disable UnusedMember.Global Эти поля описывают сущность и участвуют в маппинге
-namespace AccountService.Application.Features.DTOs;
+namespace AccountService.Application.DTOs;
 
 
 /// <summary>

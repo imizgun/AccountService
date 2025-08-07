@@ -1,4 +1,4 @@
-﻿using AccountService.Application.Features.DTOs;
+﻿using AccountService.Application.DTOs;
 using MediatR;
 
 namespace AccountService.Application.Features.Accounts.GetAccount;
