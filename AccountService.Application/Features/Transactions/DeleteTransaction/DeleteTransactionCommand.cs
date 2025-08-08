@@ -2,4 +2,4 @@
 
 namespace AccountService.Application.Features.Transactions.DeleteTransaction;
 
-public record DeleteTransactionCommand(Guid TransactionId) : IRequest<bool>;
+public record DeleteTransactionCommand(Guid TransactionId, uint xmin) : IRequest<bool>;

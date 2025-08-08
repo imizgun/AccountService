@@ -23,7 +23,7 @@ public class UnitOfWorkRepository(
 	
 	public  Task RollbackAsync(CancellationToken ct = default) => _transaction != null ? _transaction.RollbackAsync(ct) : Task.CompletedTask;
 		
-	public async Task SaveChangesAsync(CancellationToken ct = default) => await context.SaveChangesAsync(ct);
+	public async Task<int> SaveChangesAsync(CancellationToken ct = default) => await context.SaveChangesAsync(ct);
 
 	public void Dispose() 
 	{

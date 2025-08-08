@@ -10,9 +10,11 @@ public class DeleteAccountCommandHandler(IAccountRepository accountRepository) :
         var account = await accountRepository.GetByIdAsync(request.AccountId, cancellationToken);
 
         if (account == null) return false;
+        
+        if (account.ClosingDate != null) throw new InvalidOperationException("Account is already closed");
 
         account.Close();
 
-        return await accountRepository.CloseAccountAsync(account, cancellationToken);
+        return await accountRepository.CloseAccountAsync(account, cancellationToken, request.xmin);
     }
 }

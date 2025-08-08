@@ -15,7 +15,7 @@ public class MakeTransactionsCommandHandler(
         if (request.AccountId == request.CounterpartyAccountId)
             throw new InvalidOperationException("You can't make transactions to the same account");
 
-        if (!Enum.TryParse<TransactionType>(request.TransactionType, out var transactionType))
+        if (!Enum.TryParse<ETransactionType>(request.TransactionType, out var transactionType))
             throw new InvalidOperationException("Transaction type is not valid");
 
         var account = await accountRepository.GetByIdAsync(request.AccountId, cancellationToken)
@@ -25,14 +25,18 @@ public class MakeTransactionsCommandHandler(
             ? await accountRepository.GetByIdAsync(request.CounterpartyAccountId.Value, cancellationToken)
             : null;
 
-        if (transactionType == TransactionType.Credit && counterpartyAccount is not null)
+        if (transactionType == ETransactionType.Credit && counterpartyAccount is not null)
             throw new InvalidOperationException("You can't do credit from other account");
 
         // Transaction start
+        
         await unitOfWork.BeginTransactionAsync(cancellationToken);
 
         try 
         {
+            bool isFirstTransactionSuccess, isSecondTransactionSuccess = true;
+            
+            // Создание транзакций, изменение баланса и сохранение в БД
             var transaction = Transaction.Create(
                 request.AccountId,
                 request.CounterpartyAccountId,
@@ -42,7 +46,7 @@ public class MakeTransactionsCommandHandler(
                 request.Description
             );
 
-            if (transactionType == TransactionType.Debit)
+            if (transactionType == ETransactionType.Debit)
                 account.Withdraw(request.Amount);
             else
                 account.Deposit(request.Amount);
@@ -57,17 +61,29 @@ public class MakeTransactionsCommandHandler(
                 await transactionRepository.CreateAsync(counterpartyTransaction, cancellationToken);
                 await accountRepository.UpdateAccount(counterpartyAccount, cancellationToken);
             }
-
+            
+            // Сохранение изменений в БД
             await unitOfWork.SaveChangesAsync(cancellationToken);
+            
+            // Проверка баланса аккаунтов после транзакции
+            isFirstTransactionSuccess = await accountRepository.ValidateAccountBalanceAsync(account.Id, account.Balance, cancellationToken);
+            if (counterpartyAccount is not null)
+                isSecondTransactionSuccess = await accountRepository.ValidateAccountBalanceAsync(counterpartyAccount.Id, counterpartyAccount.Balance, cancellationToken);
+            
+            if (!isFirstTransactionSuccess || !isSecondTransactionSuccess) 
+                throw new InvalidOperationException("Transaction failed due to account balance mismatch");
+            
+            // Если все прошло успешно, фиксируем транзакцию
             await unitOfWork.CommitAsync(cancellationToken);
             
             return transactionId;
+            
             // Transaction end
         }
         catch (Exception ex) 
         {
             await unitOfWork.RollbackAsync(cancellationToken);
-            throw new InvalidOperationException("Transaction failed", ex);
+            throw new InvalidOperationException(ex.Message, ex);
         }
     }
 }

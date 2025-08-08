@@ -12,6 +12,11 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
         builder.HasIndex(x => x.Id)
             .HasDatabaseName("IX_Accounts_OwnerId_Hash")
             .HasMethod("hash");
+
+        builder.Property(x => x.Xmin)
+            .HasColumnName("xmin")
+            .IsRowVersion()
+            .ValueGeneratedOnAddOrUpdate();
         
         builder.Property(x => x.AccountType).IsRequired();
         builder.Property(x => x.Balance).IsRequired();

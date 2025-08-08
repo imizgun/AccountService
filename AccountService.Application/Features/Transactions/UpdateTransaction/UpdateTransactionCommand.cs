@@ -2,4 +2,4 @@
 
 namespace AccountService.Application.Features.Transactions.UpdateTransaction;
 
-public record UpdateTransactionCommand(Guid TransactionId, string Description) : IRequest<bool>;
+public record UpdateTransactionCommand(Guid TransactionId, string Description, uint xmin) : IRequest<bool>;

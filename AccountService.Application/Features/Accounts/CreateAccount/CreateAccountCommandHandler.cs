@@ -5,7 +5,7 @@ using MediatR;
 
 namespace AccountService.Application.Features.Accounts.CreateAccount;
 
-public class CreateAccountCommandHandler(IAccountRepository accountRepository) : IRequestHandler<CreateAccountCommand, Guid>
+public class CreateAccountCommandHandler(IAccountRepository accountRepository, IUnitOfWork unitOfWork) : IRequestHandler<CreateAccountCommand, Guid>
 {
     public async Task<Guid> Handle(CreateAccountCommand request, CancellationToken cancellationToken)
     {
@@ -19,6 +19,8 @@ public class CreateAccountCommandHandler(IAccountRepository accountRepository) :
             request.InterestRate
             );
 
-        return await accountRepository.CreateAsync(newAccount, cancellationToken);
+        var res = await accountRepository.CreateAsync(newAccount, cancellationToken);
+        var save = await unitOfWork.SaveChangesAsync(cancellationToken);
+        return save > 0 ? res : Guid.Empty;
     }
 }

@@ -47,5 +47,8 @@ public class AccountDto
     /// </summary>
     public DateTime? ClosingDate { get; set; }
 
-    // public List<TransactionDto> Transactions { get; set; } = new();
+    /// <summary>
+    /// Версия строки (для оптимистической блокировки)
+    /// </summary>
+    public uint Xmin { get; set; }
 }

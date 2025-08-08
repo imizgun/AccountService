@@ -10,8 +10,7 @@ public class BaseRepository<T>(AccountServiceDbContext context) : IBaseRepositor
     public async Task<Guid> CreateAsync(T obj, CancellationToken cancellationToken)
     {
         await DbSet.AddAsync(obj, cancellationToken);
-        var res = await context.SaveChangesAsync(cancellationToken);
-        return res > 0 ? obj.Id : Guid.Empty;
+        return obj.Id;
     }
 
     public async Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken)

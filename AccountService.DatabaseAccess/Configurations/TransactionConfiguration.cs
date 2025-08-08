@@ -16,6 +16,11 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
             .HasDatabaseName("IX_Transactions_Date_gist")
             .HasMethod("gist");
         
+        builder.Property(x => x.Xmin)
+            .HasColumnName("xmin")
+            .IsRowVersion()
+            .ValueGeneratedOnAddOrUpdate();
+        
         builder.Property(x => x.AccountId).IsRequired();
         builder.Property(x => x.Currency).IsRequired();
         builder.Property(x => x.Description).IsRequired().HasMaxLength(Transaction.MaxDescriptionLength);

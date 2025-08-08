@@ -21,6 +21,7 @@ public class Account : IIdentifiable
             _interestRate = value;
         }
     }
+    public uint Xmin { get; private set; }
 
     public DateTime OpeningDate { get; set; }
     public DateTime? ClosingDate { get; set; }

@@ -13,36 +13,37 @@ public class Transaction : IIdentifiable
     public Account? CounterpartyAccount { get; set; }
     public decimal Amount { get; set; }
     public string Currency { get; set; } = null!;
-    public TransactionType TransactionType { get; set; }
+    public ETransactionType TransactionType { get; set; }
     public string Description { get; set; } = null!;
     public DateTime TransactionDate { get; set; }
     public bool IsDeleted { get; set; }
+    public uint Xmin { get; private set; }
     public const int MaxDescriptionLength = 500;
 
     public Transaction() { }
 
     private Transaction(Guid id, Guid accountId, Guid? counterpartyAccountId, decimal amount,
-        string currency, TransactionType transactionType, string description)
+        string currency, ETransactionType eTransactionType, string description)
     {
         Id = id;
         AccountId = accountId;
         CounterpartyAccountId = counterpartyAccountId;
         Amount = amount;
         Currency = currency;
-        TransactionType = transactionType;
+        TransactionType = eTransactionType;
         Description = description;
         TransactionDate = DateTime.UtcNow;
         IsDeleted = false;
     }
 
     public static Transaction Create(Guid accountId, Guid? counterpartyAccountId, decimal amount,
-        string currency, TransactionType transactionType, string description)
+        string currency, ETransactionType eTransactionType, string description)
     {
         if (amount <= 0)
             throw new ArgumentException("Transaction amount must be greater than zero.");
 
         return new Transaction(Guid.NewGuid(), accountId, counterpartyAccountId, amount, currency,
-            transactionType, description);
+            eTransactionType, description);
     }
 
     public Transaction GetReverseTransaction()
@@ -56,7 +57,7 @@ public class Transaction : IIdentifiable
                 AccountId,
                 Amount,
                 Currency,
-                TransactionType == TransactionType.Credit ? TransactionType.Debit : TransactionType.Credit,
+                TransactionType == ETransactionType.Credit ? ETransactionType.Debit : ETransactionType.Credit,
                 Description
             );
     }

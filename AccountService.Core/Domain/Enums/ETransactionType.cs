@@ -1,6 +1,6 @@
 ﻿namespace AccountService.Core.Domain.Enums;
 
-public enum TransactionType
+public enum ETransactionType
 {
     /// <summary>
     /// Зачисление

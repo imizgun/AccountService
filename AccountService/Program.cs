@@ -108,7 +108,7 @@ app.Use(async (context, next) =>
     }
     catch (Exception ex)
     {
-        context.Response.StatusCode = 400;
+        context.Response.StatusCode = 409;
         await context.Response.WriteAsJsonAsync(MbResult<object>.Fail(ex.Message));
     }
 });

@@ -2,4 +2,4 @@
 
 namespace AccountService.Application.Features.Accounts.DeleteAccount;
 
-public record DeleteAccountCommand(Guid AccountId) : IRequest<bool>;
+public record DeleteAccountCommand(Guid AccountId, uint xmin) : IRequest<bool>;

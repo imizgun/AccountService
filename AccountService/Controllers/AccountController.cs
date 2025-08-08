@@ -4,10 +4,7 @@ using AccountService.Application.Features.Accounts.CreateAccount;
 using AccountService.Application.Features.Accounts.DeleteAccount;
 using AccountService.Application.Features.Accounts.GetAccount;
 using AccountService.Application.Features.Accounts.UpdateAccount;
-using AccountService.Application.Features.Transactions.DeleteTransaction;
 using AccountService.Application.Features.Transactions.GetTransactions;
-using AccountService.Application.Features.Transactions.MakeTransactions;
-using AccountService.Application.Features.Transactions.UpdateTransaction;
 using AccountService.Requests;
 using AccountService.Responses;
 using MediatR;
@@ -21,8 +18,6 @@ namespace AccountService.Controllers;
 [Route("/api/accounts")]
 public class AccountController(IMediator mediator) : ControllerBase
 {
-
-
     /// <summary>
     /// Возвращает список всех аккаунтов для клиента с ID OwnerId.
     /// </summary>
@@ -83,15 +78,16 @@ public class AccountController(IMediator mediator) : ControllerBase
     /// Удаляет (закрывает) счёт по ID
     /// </summary>
     /// <param name="id">ID счёта</param>
+    /// <param name="request">Запрос на удаление счёта</param>
     /// <param name="cancellationToken"></param>
     /// <returns>Сообщение, характеризующее результат операции</returns>
     /// <response code="200">Счет успешно закрыт</response>
     /// <response code="400">Некорректный запрос или ошибка на сервере</response> 
     /// <response code="401">Необходима авторизация</response>
     [HttpDelete("{id:guid}")]
-    public async Task<ActionResult<MbResult<Guid>>> DeleteAccount(Guid id, CancellationToken cancellationToken)
+    public async Task<ActionResult<MbResult<Guid>>> DeleteAccount(Guid id, [FromBody] XminRequets request, CancellationToken cancellationToken)
     {
-        var command = new DeleteAccountCommand(id);
+        var command = new DeleteAccountCommand(id, request.xmin);
         var res = await mediator.Send(command, cancellationToken);
 
         return res ?
@@ -143,85 +139,5 @@ public class AccountController(IMediator mediator) : ControllerBase
         var result = await mediator.Send(new GetTransactionsCommand(id, notNullTake, notNullSkip), cancellationToken);
 
         return Ok(MbResult<List<TransactionDto>>.Ok(result));
-    }
-
-
-    /// <summary>
-    /// Создает транзакцию со счета по ID, создает обратную транзакцию на счете контрагента, если указан
-    /// </summary>
-    /// <param name="id">ID счета</param>
-    /// <param name="request">Тело запроса для счета</param>
-    /// <param name="cancellationToken"></param>
-    /// <returns>ID созданной транзакции</returns>
-    /// <response code="200">Возвращает ID созданной транзакции</response>
-    /// <response code="400">Некорректный запрос или ошибка на сервере</response>
-    /// <response code="401">Необходима авторизация</response>
-    [HttpPost("{id:guid}/transactions")]
-    public async Task<ActionResult<MbResult<Guid>>> CreateTransaction(
-        Guid id,
-        [FromBody] CreateTransactionRequest request,
-        CancellationToken cancellationToken)
-    {
-        var command = new MakeTransactionCommand(
-            id,
-            request.CounterpartyAccountId,
-            request.TransactionType,
-            request.Currency,
-            request.Amount,
-            request.Description);
-
-        var result = await mediator.Send(command, cancellationToken);
-
-        return result == Guid.Empty ?
-            BadRequest(MbResult<Guid>.Fail("Error while creating transaction")) :
-            Ok(MbResult<Guid>.Ok(result, "Transaction created successfully"));
-    }
-
-
-    /// <summary>
-    /// Помечает транзакцию по ID как удаленную (не удаляет физически)
-    /// </summary>
-    /// <param name="id">ID счета</param>
-    /// <param name="transactionId">ID транзакции</param>
-    /// <param name="cancellationToken"></param>
-    /// <returns>Сообщение, успешно ли прошло удаление</returns>
-    /// <response code="200">Успешное удаление</response>
-    /// <response code="400">Некорректный запрос или ошибка на сервере</response>
-    /// <response code="401">Необходима авторизация</response>
-    [HttpDelete("{id:guid}/transactions/{transactionId:guid}")]
-    public async Task<ActionResult<MbResult<Guid>>> DeleteTransaction(Guid id, Guid transactionId, CancellationToken cancellationToken)
-    {
-        var command = new DeleteTransactionCommand(transactionId);
-        var res = await mediator.Send(command, cancellationToken);
-
-        return res ?
-            Ok(MbResult<Guid>.Ok(transactionId, "Deleted successfully"))
-            : NotFound(MbResult<Guid>.Fail("Resource not found"));
-    }
-
-    /// <summary>
-    /// Изменяет описание транзакции по ID (предполагается, что это делается для исправления ошибок)
-    /// </summary>
-    /// <param name="id">ID счета</param>
-    /// <param name="transactionId">ID транзакции</param>
-    /// <param name="cancellationToken"></param>
-    /// <param name="request"></param>
-    /// <returns>Сообщение, успешно ли прошло обновление</returns>
-    /// <response code="200">Успешное обновление</response>
-    /// <response code="400">Некорректный запрос или ошибка на сервере</response>
-    /// <response code="401">Необходима авторизация</response>
-    [HttpPatch("{id:guid}/transactions/{transactionId:guid}")]
-    public async Task<ActionResult<MbResult<Guid>>> UpdateTransaction(
-        Guid id,
-        Guid transactionId,
-        [FromBody] UpdateTransactionRequest request,
-        CancellationToken cancellationToken)
-    {
-        var command = new UpdateTransactionCommand(transactionId, request.Description);
-        var res = await mediator.Send(command, cancellationToken);
-
-        return !res ?
-            BadRequest(MbResult<Guid>.Fail("Update failed")) :
-            Ok(MbResult<Guid>.Ok(transactionId, "Updated successfully"));
     }
 }
