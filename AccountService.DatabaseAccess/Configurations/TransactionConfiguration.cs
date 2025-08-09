@@ -17,6 +17,7 @@ public class TransactionConfiguration : IEntityTypeConfiguration<Transaction>
             .HasMethod("gist");
         
         builder.Property(x => x.Xmin)
+            // ReSharper disable once StringLiteralTypo
             .HasColumnName("xmin")
             .IsRowVersion()
             .ValueGeneratedOnAddOrUpdate();

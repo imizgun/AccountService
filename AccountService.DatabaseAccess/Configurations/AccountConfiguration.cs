@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace AccountService.DatabaseAccess.Configurations;
-
 public class AccountConfiguration : IEntityTypeConfiguration<Account>
 {
     public void Configure(EntityTypeBuilder<Account> builder)
@@ -14,6 +13,7 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
             .HasMethod("hash");
 
         builder.Property(x => x.Xmin)
+            // ReSharper disable once StringLiteralTypo
             .HasColumnName("xmin")
             .IsRowVersion()
             .ValueGeneratedOnAddOrUpdate();

@@ -2,9 +2,11 @@
 using AccountService.Core.Domain.Abstraction;
 using AccountService.Core.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+// ReSharper disable StringLiteralTypo
 
 namespace AccountService.DatabaseAccess.Repositories;
 
+// ReSharper disable once IdentifierTypo
 public class TransactionRepository(AccountServiceDbContext context) : BaseRepository<Transaction>(context), ITransactionRepository
 {
     public async Task<List<Transaction>> GetAllFromAccountAsync(Guid accountId, int pageNumber, int pageSize, CancellationToken cancellationToken)
@@ -31,7 +33,7 @@ public class TransactionRepository(AccountServiceDbContext context) : BaseReposi
             s.SetProperty(x => x.IsDeleted, true), 
             cancellationToken);
 
-        if (res == 0) throw new DBConcurrencyException("Update failed due to concurrency conflict. The account may have been modified by another transaction.");
+        if (res == 0) throw new DBConcurrencyException("Update failed due to concurrency conflict. The transaction may have been modified by another process.");
 
         return res > 0;
     }
@@ -43,12 +45,13 @@ public class TransactionRepository(AccountServiceDbContext context) : BaseReposi
         if (!exists) return false;
         
         var res = await DbSet
+            // ReSharper disable once StringLiteralTypo
             .Where(x => x.Id == id && EF.Property<uint>(x, "xmin") == xmin)
             .ExecuteUpdateAsync(s => 
             s.SetProperty(x => x.Description, description), 
             cancellationToken);
 
-        if (res == 0) throw new DBConcurrencyException("Update failed due to concurrency conflict. The account may have been modified by another transaction.");
+        if (res == 0) throw new DBConcurrencyException("Update failed due to concurrency conflict. The transaction may have been modified by another process.");
 
         return res > 0;
     }

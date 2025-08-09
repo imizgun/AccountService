@@ -2,8 +2,6 @@
 
 public interface IUnitOfWork
 {
-	IAccountRepository AccountRepository { get; }
-	ITransactionRepository TransactionsRepository { get; }
 	Task BeginTransactionAsync(CancellationToken ct = default);
 	Task CommitAsync(CancellationToken ct = default);
 	Task RollbackAsync(CancellationToken ct = default);

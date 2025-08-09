@@ -1,5 +1,5 @@
 ﻿using MediatR;
 
 namespace AccountService.Application.Features.Transactions.DeleteTransaction;
-
-public record DeleteTransactionCommand(Guid TransactionId, uint xmin) : IRequest<bool>;
+// ReSharper disable once IdentifierTypo
+public record DeleteTransactionCommand(Guid TransactionId, uint Xmin) : IRequest<bool>;

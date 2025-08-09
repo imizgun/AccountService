@@ -4,6 +4,7 @@ using AccountService.Core.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace AccountService.DatabaseAccess.Repositories;
+// ReSharper disable once IdentifierTypo
 
 public class AccountRepository(AccountServiceDbContext context) : BaseRepository<Account>(context), IAccountRepository
 {
@@ -26,6 +27,7 @@ public class AccountRepository(AccountServiceDbContext context) : BaseRepository
         if (!exists) return false;
         
         var res = await DbSet
+            // ReSharper disable once StringLiteralTypo
             .Where(ac => ac.Id == account.Id && EF.Property<uint>(ac, "xmin") == xmin)
             .ExecuteUpdateAsync(s => 
             s.SetProperty(a => a.ClosingDate, account.ClosingDate), cancellationToken);

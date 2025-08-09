@@ -51,9 +51,10 @@ public class TransactionDto
     /// Флаг, удалена ли транзакция
     /// </summary>
     public bool IsDeleted { get; set; }
-    
+
     /// <summary>
     /// Версия строки (для оптимистической блокировки)
     /// </summary>
+    // ReSharper disable once IdentifierTypo
     public uint Xmin { get; set; }
 }

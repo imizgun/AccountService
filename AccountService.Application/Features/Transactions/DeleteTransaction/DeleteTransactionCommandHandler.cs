@@ -8,6 +8,6 @@ public class DeleteTransactionCommandHandler(ITransactionRepository transactionR
     public async Task<bool> Handle(DeleteTransactionCommand request, CancellationToken cancellationToken)
     {
         return await transactionRepository
-            .DeleteTransactionByIdAsync(request.TransactionId, cancellationToken, request.xmin);
+            .DeleteTransactionByIdAsync(request.TransactionId, cancellationToken, request.Xmin);
     }
 }

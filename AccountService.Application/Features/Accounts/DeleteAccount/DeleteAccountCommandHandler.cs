@@ -15,6 +15,6 @@ public class DeleteAccountCommandHandler(IAccountRepository accountRepository) :
 
         account.Close();
 
-        return await accountRepository.CloseAccountAsync(account, cancellationToken, request.xmin);
+        return await accountRepository.CloseAccountAsync(account, cancellationToken, request.Xmin);
     }
 }

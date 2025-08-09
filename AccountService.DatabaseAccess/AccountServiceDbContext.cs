@@ -18,5 +18,6 @@ public class AccountServiceDbContext : DbContext
 	}
 	
 	public DbSet<Account> Accounts { get; set; }
-	public DbSet<Transaction> Transactions { get; set; }
+    // ReSharper disable once UnusedMember.Global Поле используется как модель в БД
+    public DbSet<Transaction> Transactions { get; set; }
 }

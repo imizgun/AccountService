@@ -34,7 +34,7 @@ public class MakeTransactionsCommandHandler(
 
         try 
         {
-            bool isFirstTransactionSuccess, isSecondTransactionSuccess = true;
+            var isSecondTransactionSuccess = true;
             
             // Создание транзакций, изменение баланса и сохранение в БД
             var transaction = Transaction.Create(
@@ -64,9 +64,9 @@ public class MakeTransactionsCommandHandler(
             
             // Сохранение изменений в БД
             await unitOfWork.SaveChangesAsync(cancellationToken);
-            
+
             // Проверка баланса аккаунтов после транзакции
-            isFirstTransactionSuccess = await accountRepository.ValidateAccountBalanceAsync(account.Id, account.Balance, cancellationToken);
+            var isFirstTransactionSuccess = await accountRepository.ValidateAccountBalanceAsync(account.Id, account.Balance, cancellationToken);
             if (counterpartyAccount is not null)
                 isSecondTransactionSuccess = await accountRepository.ValidateAccountBalanceAsync(counterpartyAccount.Id, counterpartyAccount.Balance, cancellationToken);
             

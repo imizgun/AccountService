@@ -1,3 +1,4 @@
-﻿namespace AccountService.Requests;
+﻿// ReSharper disable IdentifierTypo
+namespace AccountService.Requests;
 
-public record XminRequets(uint xmin);
+public record XminRequest(uint Xmin);

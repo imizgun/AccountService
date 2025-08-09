@@ -4,13 +4,8 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace AccountService.DatabaseAccess.Repositories;
 
-public class UnitOfWorkRepository(
-	AccountServiceDbContext context, 
-	IAccountRepository accountRepository, 
-	ITransactionRepository transactionRepository) : IUnitOfWork, IDisposable, IAsyncDisposable
+public class UnitOfWorkRepository(AccountServiceDbContext context) : IUnitOfWork, IDisposable, IAsyncDisposable
 {
-	public IAccountRepository AccountRepository => accountRepository;
-	public ITransactionRepository TransactionsRepository => transactionRepository;
 	private IDbContextTransaction? _transaction;
 	
 	public async Task BeginTransactionAsync(CancellationToken ct = default)

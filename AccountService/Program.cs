@@ -1,3 +1,4 @@
+using System.Data;
 using AccountService;
 using AccountService.Application.Behaviors;
 using AccountService.Application.Features.Accounts.CreateAccount;
@@ -80,13 +81,15 @@ builder.Services.AddMediatR(cfg =>
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MapperProfile>());
 
 builder.Services.AddDbContext<AccountServiceDbContext>(opt => {
-    opt.UseNpgsql(builder.Configuration.GetConnectionString(nameof(AccountServiceDbContext)));
+    var cs = builder.Configuration.GetConnectionString(nameof(AccountServiceDbContext));
+    opt.UseNpgsql(cs, npg => {
+        npg.EnableRetryOnFailure(5, TimeSpan.FromMilliseconds(200), null);
+    });
 });
 
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWorkRepository>();
-builder.Services.AddSingleton<IClientService, ClientService>(); // TODO: удалить, потому что не нужен
 builder.Services.AddSingleton<ICurrencyService, CurrencyService>();
 
 builder.Services.AddValidatorsFromAssemblyContaining<CreateAccountCommandValidator>();
@@ -102,13 +105,17 @@ using (var scope = app.Services.CreateScope())
 
 app.Use(async (context, next) =>
 {
-    try
-    {
+    try {
         await next.Invoke();
+    }
+    catch (DBConcurrencyException ex) 
+    {
+        context.Response.StatusCode = StatusCodes.Status409Conflict;
+        await context.Response.WriteAsJsonAsync(MbResult<object>.Fail(ex.Message));
     }
     catch (Exception ex)
     {
-        context.Response.StatusCode = 409;
+        context.Response.StatusCode = StatusCodes.Status400BadRequest;
         await context.Response.WriteAsJsonAsync(MbResult<object>.Fail(ex.Message));
     }
 });
@@ -130,3 +137,5 @@ app.UseCors(c => c
 
 app.UseHttpsRedirection();
 app.Run();
+
+public partial class Program { } // For testing purposes

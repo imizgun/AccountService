@@ -2,14 +2,14 @@
 using AccountService.Core.Domain.Enums;
 
 namespace AccountService.Core.Domain.Entities;
-
+// ReSharper disable once IdentifierTypo
 public class Account : IIdentifiable
 {
     public Guid Id { get; set; }
     public Guid OwnerId { get; set; }
     public AccountType AccountType { get; set; }
     public string Currency { get; set; } = null!;
-    public decimal Balance { get; set; }
+    public decimal Balance { get; private set; }
     private decimal? _interestRate;
     public decimal? InterestRate
     {
@@ -21,6 +21,7 @@ public class Account : IIdentifiable
             _interestRate = value;
         }
     }
+    // ReSharper disable once UnusedAutoPropertyAccessor.Local : приватный сеттер нужен для гарантии постоянства этого поля
     public uint Xmin { get; private set; }
 
     public DateTime OpeningDate { get; set; }

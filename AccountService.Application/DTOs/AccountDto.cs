@@ -50,5 +50,6 @@ public class AccountDto
     /// <summary>
     /// Версия строки (для оптимистической блокировки)
     /// </summary>
+    // ReSharper disable once IdentifierTypo
     public uint Xmin { get; set; }
 }

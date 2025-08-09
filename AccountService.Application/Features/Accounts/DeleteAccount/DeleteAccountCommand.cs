@@ -1,5 +1,5 @@
 ﻿using MediatR;
 
 namespace AccountService.Application.Features.Accounts.DeleteAccount;
-
-public record DeleteAccountCommand(Guid AccountId, uint xmin) : IRequest<bool>;
+// ReSharper disable once IdentifierTypo
+public record DeleteAccountCommand(Guid AccountId, uint Xmin) : IRequest<bool>;

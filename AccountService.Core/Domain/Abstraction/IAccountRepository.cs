@@ -1,7 +1,7 @@
 ﻿using AccountService.Core.Domain.Entities;
 
 namespace AccountService.Core.Domain.Abstraction;
-
+// ReSharper disable once IdentifierTypo
 public interface IAccountRepository : IBaseRepository<Account>
 {
     // TODO: сделать метод получения только счетов, без транзакций

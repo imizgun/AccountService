@@ -85,9 +85,9 @@ public class AccountController(IMediator mediator) : ControllerBase
     /// <response code="400">Некорректный запрос или ошибка на сервере</response> 
     /// <response code="401">Необходима авторизация</response>
     [HttpDelete("{id:guid}")]
-    public async Task<ActionResult<MbResult<Guid>>> DeleteAccount(Guid id, [FromBody] XminRequets request, CancellationToken cancellationToken)
+    public async Task<ActionResult<MbResult<Guid>>> DeleteAccount(Guid id, [FromBody] XminRequest request, CancellationToken cancellationToken)
     {
-        var command = new DeleteAccountCommand(id, request.xmin);
+        var command = new DeleteAccountCommand(id, request.Xmin);
         var res = await mediator.Send(command, cancellationToken);
 
         return res ?

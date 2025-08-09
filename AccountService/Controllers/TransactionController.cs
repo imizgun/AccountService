@@ -35,21 +35,21 @@ public class TransactionController(IMediator mediator) : ControllerBase
             Ok(MbResult<Guid>.Ok(result, "Transaction created successfully"));
     }
 
-
+    // ReSharper disable once CommentTypo
     /// <summary>
     /// Помечает транзакцию по ID как удаленную (не удаляет физически)
     /// </summary>
     /// <param name="transactionId">ID транзакции</param>
     /// <param name="cancellationToken"></param>
-    /// <param name="requets">Тело c xmin</param>
+    /// <param name="request">Тело c xmin</param>
     /// <returns>Сообщение, успешно ли прошло удаление</returns>
     /// <response code="200">Успешное удаление</response>
     /// <response code="400">Некорректный запрос или ошибка на сервере</response>
     /// <response code="401">Необходима авторизация</response>
     [HttpDelete("{transactionId:guid}")]
-    public async Task<ActionResult<MbResult<Guid>>> DeleteTransaction(Guid transactionId, XminRequets requets, CancellationToken cancellationToken)
+    public async Task<ActionResult<MbResult<Guid>>> DeleteTransaction(Guid transactionId, XminRequest request, CancellationToken cancellationToken)
     {
-        var command = new DeleteTransactionCommand(transactionId, requets.xmin);
+        var command = new DeleteTransactionCommand(transactionId, request.Xmin);
         var res = await mediator.Send(command, cancellationToken);
 
         return res ?
@@ -73,7 +73,7 @@ public class TransactionController(IMediator mediator) : ControllerBase
         [FromBody] UpdateTransactionRequest request,
         CancellationToken cancellationToken)
     {
-        var command = new UpdateTransactionCommand(transactionId, request.Description, request.xmin);
+        var command = new UpdateTransactionCommand(transactionId, request.Description, request.Xmin);
         var res = await mediator.Send(command, cancellationToken);
 
         return !res ?

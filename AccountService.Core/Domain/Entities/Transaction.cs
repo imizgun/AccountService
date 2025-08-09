@@ -2,7 +2,7 @@
 using AccountService.Core.Domain.Enums;
 
 namespace AccountService.Core.Domain.Entities;
-
+// ReSharper disable once IdentifierTypo
 public class Transaction : IIdentifiable
 {
     public Guid Id { get; set; }
@@ -17,6 +17,7 @@ public class Transaction : IIdentifiable
     public string Description { get; set; } = null!;
     public DateTime TransactionDate { get; set; }
     public bool IsDeleted { get; set; }
+    // ReSharper disable once UnusedAutoPropertyAccessor.Local : приватный сеттер нужен для гарантии постоянства этого поля
     public uint Xmin { get; private set; }
     public const int MaxDescriptionLength = 500;
 
@@ -41,6 +42,9 @@ public class Transaction : IIdentifiable
     {
         if (amount <= 0)
             throw new ArgumentException("Transaction amount must be greater than zero.");
+        
+        if (eTransactionType == ETransactionType.Credit && counterpartyAccountId != null)
+            throw new ArgumentException("Credit transactions should not have a counterparty account.");
 
         return new Transaction(Guid.NewGuid(), accountId, counterpartyAccountId, amount, currency,
             eTransactionType, description);
@@ -52,7 +56,8 @@ public class Transaction : IIdentifiable
 
         var notNullCounterpartyAccountId = CounterpartyAccountId ?? Guid.Empty;
 
-        return Create(
+        return new Transaction(
+                Guid.NewGuid(),
                 notNullCounterpartyAccountId,
                 AccountId,
                 Amount,
