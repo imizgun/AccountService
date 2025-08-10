@@ -17,4 +17,11 @@ public class BaseRepository<T>(AccountServiceDbContext context) : IBaseRepositor
     {
         return await DbSet.AnyAsync(x => x.Id == id, cancellationToken);
     }
+
+    public async Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken) => 
+        await DbSet.AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+    public async Task<T?> GetByIdForUpdateAsync(Guid id, CancellationToken cancellationToken) => 
+        await DbSet 
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
 }

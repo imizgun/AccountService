@@ -35,9 +35,7 @@ public class IntegrationTestWebFactory : WebApplicationFactory<Program>, IAsyncL
                 services.Remove(descriptor);
 
             services.AddDbContext<AccountServiceDbContext>(opt => {
-                opt.UseNpgsql(_connectionString, npg => {
-                    npg.EnableRetryOnFailure(5, TimeSpan.FromMilliseconds(200), null);
-                });
+                opt.UseNpgsql(_connectionString);
             });
         });
     }

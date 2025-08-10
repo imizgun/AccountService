@@ -1,4 +1,3 @@
-using System.Data;
 using AccountService;
 using AccountService.Application.Behaviors;
 using AccountService.Application.Features.Accounts.CreateAccount;
@@ -6,9 +5,11 @@ using AccountService.Application.Services.Abstractions;
 using AccountService.Application.Services.Services;
 using AccountService.Core.Domain.Abstraction;
 using AccountService.DatabaseAccess;
+using AccountService.DatabaseAccess.Abstractions;
 using AccountService.DatabaseAccess.Repositories;
 using AccountService.Filters;
 using AccountService.Responses;
+using AccountService.Utils;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -82,9 +83,7 @@ builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MapperProfile>());
 
 builder.Services.AddDbContext<AccountServiceDbContext>(opt => {
     var cs = builder.Configuration.GetConnectionString(nameof(AccountServiceDbContext));
-    opt.UseNpgsql(cs, npg => {
-        npg.EnableRetryOnFailure(5, TimeSpan.FromMilliseconds(200), null);
-    });
+    opt.UseNpgsql(cs);
 });
 
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
@@ -105,13 +104,24 @@ using (var scope = app.Services.CreateScope())
 
 app.Use(async (context, next) =>
 {
-    try {
-        await next.Invoke();
+    try
+    {
+        await next();
     }
-    catch (DBConcurrencyException ex) 
+    catch (DbUpdateConcurrencyException)
     {
         context.Response.StatusCode = StatusCodes.Status409Conflict;
-        await context.Response.WriteAsJsonAsync(MbResult<object>.Fail(ex.Message));
+        await context.Response.WriteAsJsonAsync(MbResult<object>.Fail("Concurrency conflict"));
+    }
+    catch (DbUpdateException ex) when (Utils.TryGetPg(ex, out var pg) && (pg.SqlState == "40001" || pg.SqlState == "40P01"))
+    {
+        context.Response.StatusCode = StatusCodes.Status409Conflict;
+        await context.Response.WriteAsJsonAsync(MbResult<object>.Fail($"DB conflict ({pg.SqlState})"));
+    }
+    catch (InvalidOperationException ex) when (ex.Message.Contains("transient failure", StringComparison.OrdinalIgnoreCase))
+    {
+        context.Response.StatusCode = StatusCodes.Status409Conflict;
+        await context.Response.WriteAsJsonAsync(MbResult<object>.Fail("Transient failure, please retry"));
     }
     catch (Exception ex)
     {

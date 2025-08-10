@@ -1,4 +1,4 @@
-﻿namespace AccountService.Core.Domain.Abstraction;
+﻿namespace AccountService.DatabaseAccess.Abstractions;
 
 public interface IUnitOfWork
 {

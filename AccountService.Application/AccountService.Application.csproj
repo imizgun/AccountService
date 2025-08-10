@@ -19,6 +19,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\AccountService.Core\AccountService.Core.csproj" />
+      <ProjectReference Include="..\AccountService.DatabaseAccess\AccountService.DatabaseAccess.csproj" />
     </ItemGroup>
 
 </Project>

@@ -1,6 +1,7 @@
 ﻿using AccountService.Core.Domain.Abstraction;
 using AccountService.Core.Domain.Entities;
 using AccountService.Core.Domain.Enums;
+using AccountService.DatabaseAccess.Abstractions;
 using MediatR;
 
 namespace AccountService.Application.Features.Accounts.CreateAccount;

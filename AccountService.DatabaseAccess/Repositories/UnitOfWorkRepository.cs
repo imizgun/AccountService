@@ -1,4 +1,5 @@
-﻿using AccountService.Core.Domain.Abstraction;
+﻿using System.Data;
+using AccountService.DatabaseAccess.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -10,8 +11,7 @@ public class UnitOfWorkRepository(AccountServiceDbContext context) : IUnitOfWork
 	
 	public async Task BeginTransactionAsync(CancellationToken ct = default)
 	{
-		_transaction = await context.Database.BeginTransactionAsync(ct);
-		await context.Database.ExecuteSqlRawAsync("SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;", ct);
+		_transaction = await context.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
 	}
 	
 	public Task CommitAsync(CancellationToken ct = default) => _transaction != null ? _transaction.CommitAsync(ct) : Task.CompletedTask;
