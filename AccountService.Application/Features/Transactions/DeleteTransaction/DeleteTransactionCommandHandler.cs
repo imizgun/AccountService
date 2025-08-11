@@ -1,4 +1,4 @@
-﻿using AccountService.Core.Domain.Abstraction;
+﻿using AccountService.Core.Features.Transactions;
 using AccountService.DatabaseAccess.Abstractions;
 using MediatR;
 
@@ -11,12 +11,12 @@ public class DeleteTransactionCommandHandler(ITransactionRepository transactionR
         var transaction = await transactionRepository.GetByIdForUpdateAsync(request.TransactionId, cancellationToken);
         
         if (transaction == null)
-            return false;
+            throw new KeyNotFoundException($"Transaction with ID {request.TransactionId} not found");
         
         if (transaction.IsDeleted) return true;
         
         transaction.IsDeleted = true;
         
-        return await unitOfWork.SaveChangesAsync(cancellationToken) == 1;
+        return await unitOfWork.SaveChangesAsync(cancellationToken) == 1 ? true : throw new InvalidOperationException("Failed to delete transaction");
     }
 }

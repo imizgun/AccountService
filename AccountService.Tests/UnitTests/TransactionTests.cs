@@ -1,5 +1,4 @@
-﻿using AccountService.Core.Domain.Entities;
-using AccountService.Core.Domain.Enums;
+﻿using AccountService.Core.Features.Transactions;
 using Xunit;
 
 namespace AccountService.Tests.UnitTests;

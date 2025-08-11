@@ -1,5 +1,5 @@
 ﻿using AccountService.Application.Services.Abstractions;
-using AccountService.Core.Domain.Abstraction;
+using AccountService.Core.Features.Accounts;
 using FluentValidation;
 
 namespace AccountService.Application.Features.Transactions.MakeTransactions;

@@ -1,9 +1,9 @@
 ﻿using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using AccountService.Application.DTOs;
+using AccountService.Application.Features.Accounts;
 using AccountService.Application.Features.Transactions.MakeTransactions;
-using AccountService.Requests;
+using AccountService.Features.Accounts;
 using AccountService.Responses;
 using Xunit;
 using Xunit.Abstractions;
@@ -17,7 +17,7 @@ public class ParallelTransferTests(IntegrationTestWebFactory factory, ITestOutpu
 	{
 		var ownerId1 = Guid.NewGuid();
 		var ownerId2 = Guid.NewGuid();
-		var balance = 100m;
+		const decimal balance = 100m;
 		var createAccount1 = new CreateAccountRequest("USD", "Checking", null);
 		var createAccount2 = new CreateAccountRequest("USD", "Checking", null);
 

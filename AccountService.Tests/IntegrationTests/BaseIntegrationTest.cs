@@ -8,7 +8,7 @@ public class BaseIntegrationTest(IntegrationTestWebFactory factory, ITestOutputH
 {
 	protected readonly HttpClient Client = factory.CreateClient();
 	protected readonly ITestOutputHelper Output = output;
-	protected readonly JsonSerializerOptions JsonSerializerOptions = new JsonSerializerOptions
+	protected readonly JsonSerializerOptions JsonSerializerOptions = new()
 	{
 		PropertyNameCaseInsensitive = true,
 	};

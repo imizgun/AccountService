@@ -1,6 +1,4 @@
-﻿using AccountService.Core.Domain.Abstraction;
-using AccountService.Core.Domain.Entities;
-using AccountService.Core.Domain.Enums;
+﻿using AccountService.Core.Features.Accounts;
 using AccountService.DatabaseAccess.Abstractions;
 using MediatR;
 
@@ -11,7 +9,7 @@ public class CreateAccountCommandHandler(IAccountRepository accountRepository, I
     public async Task<Guid> Handle(CreateAccountCommand request, CancellationToken cancellationToken)
     {
         if (!Enum.TryParse<AccountType>(request.AccountType, true, out var type))
-            throw new Exception("Invalid account type");
+            throw new ArgumentException("Invalid account type");
 
         var newAccount = Account.Create(
             request.OwnerId,
@@ -22,6 +20,6 @@ public class CreateAccountCommandHandler(IAccountRepository accountRepository, I
 
         var res = await accountRepository.CreateAsync(newAccount, cancellationToken);
         var save = await unitOfWork.SaveChangesAsync(cancellationToken);
-        return save > 0 ? res : Guid.Empty;
+        return save == 1 ? res : throw new InvalidOperationException("Failed to create account");
     }
 }

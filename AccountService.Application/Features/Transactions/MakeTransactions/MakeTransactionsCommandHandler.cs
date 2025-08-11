@@ -1,10 +1,7 @@
-﻿using AccountService.Core.Domain.Abstraction;
-using AccountService.Core.Domain.Entities;
-using AccountService.Core.Domain.Enums;
+﻿using AccountService.Core.Features.Accounts;
+using AccountService.Core.Features.Transactions;
 using AccountService.DatabaseAccess.Abstractions;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
-using Npgsql;
 
 namespace AccountService.Application.Features.Transactions.MakeTransactions;
 

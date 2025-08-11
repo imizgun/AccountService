@@ -1,5 +1,7 @@
-﻿using AccountService.Application.DTOs;
-using AccountService.Core.Domain.Entities;
+﻿using AccountService.Application.Features.Accounts;
+using AccountService.Application.Features.Transactions;
+using AccountService.Core.Features.Accounts;
+using AccountService.Core.Features.Transactions;
 using AutoMapper;
 
 namespace AccountService;

@@ -1,5 +1,4 @@
-﻿using AccountService.Application.DTOs;
-using AccountService.Core.Domain.Abstraction;
+﻿using AccountService.Core.Features.Transactions;
 using AutoMapper;
 using MediatR;
 

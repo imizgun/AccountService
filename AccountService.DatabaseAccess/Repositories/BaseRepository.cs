@@ -1,4 +1,4 @@
-﻿using AccountService.Core.Domain.Abstraction;
+﻿using AccountService.Core.Abstraction;
 using Microsoft.EntityFrameworkCore;
 
 namespace AccountService.DatabaseAccess.Repositories;

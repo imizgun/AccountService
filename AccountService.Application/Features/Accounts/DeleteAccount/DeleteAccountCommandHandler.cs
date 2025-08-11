@@ -1,4 +1,4 @@
-﻿using AccountService.Core.Domain.Abstraction;
+﻿using AccountService.Core.Features.Accounts;
 using AccountService.DatabaseAccess.Abstractions;
 using MediatR;
 
@@ -10,12 +10,14 @@ public class DeleteAccountCommandHandler(IAccountRepository accountRepository, I
     {
         var account = await accountRepository.GetByIdForUpdateAsync(request.AccountId, cancellationToken);
 
-        if (account == null) return false;
+        if (account == null) throw new KeyNotFoundException("Account not found");
         
         if (account.ClosingDate != null) throw new InvalidOperationException("Account is already closed");
 
         account.Close();
 
-        return await unitOfWork.SaveChangesAsync(cancellationToken) == 1;
+        return await unitOfWork.SaveChangesAsync(cancellationToken) == 1 
+            ? true 
+            : throw new InvalidOperationException("Error while closing account");
     }
 }

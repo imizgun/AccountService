@@ -3,14 +3,21 @@ using AccountService.Application.Behaviors;
 using AccountService.Application.Features.Accounts.CreateAccount;
 using AccountService.Application.Services.Abstractions;
 using AccountService.Application.Services.Services;
-using AccountService.Core.Domain.Abstraction;
+using AccountService.Background.DailyAccrueInterestRate;
+using AccountService.Configs;
+using AccountService.Core.Abstraction;
+using AccountService.Core.Features.Accounts;
+using AccountService.Core.Features.Transactions;
 using AccountService.DatabaseAccess;
 using AccountService.DatabaseAccess.Abstractions;
+using AccountService.DatabaseAccess.Features.Accounts;
+using AccountService.DatabaseAccess.Features.Background;
+using AccountService.DatabaseAccess.Features.Transactions;
 using AccountService.DatabaseAccess.Repositories;
 using AccountService.Filters;
-using AccountService.Responses;
-using AccountService.Utils;
+using AccountService.Middlewares;
 using FluentValidation;
+using Hangfire;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -86,13 +93,21 @@ builder.Services.AddDbContext<AccountServiceDbContext>(opt => {
     opt.UseNpgsql(cs);
 });
 
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWorkRepository>();
 builder.Services.AddSingleton<ICurrencyService, CurrencyService>();
 
+ValidatorOptions.Global.DefaultRuleLevelCascadeMode = CascadeMode.Stop;
 builder.Services.AddValidatorsFromAssemblyContaining<CreateAccountCommandValidator>();
 builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
+builder.Services.AddScoped<IAccrueInterestRateExecutor, AccrueInterestRateExecutor>();
+builder.Services.AddScoped<IAccrueInterestRateSelector, AccrueInterestRateSelector>();
+builder.Services.AddScoped<AccrueInterestRateJob>();
+builder.Services.AddHangfireWithPostgres(builder.Configuration);
 
 var app = builder.Build();
 
@@ -102,33 +117,7 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
-app.Use(async (context, next) =>
-{
-    try
-    {
-        await next();
-    }
-    catch (DbUpdateConcurrencyException)
-    {
-        context.Response.StatusCode = StatusCodes.Status409Conflict;
-        await context.Response.WriteAsJsonAsync(MbResult<object>.Fail("Concurrency conflict"));
-    }
-    catch (DbUpdateException ex) when (Utils.TryGetPg(ex, out var pg) && (pg.SqlState == "40001" || pg.SqlState == "40P01"))
-    {
-        context.Response.StatusCode = StatusCodes.Status409Conflict;
-        await context.Response.WriteAsJsonAsync(MbResult<object>.Fail($"DB conflict ({pg.SqlState})"));
-    }
-    catch (InvalidOperationException ex) when (ex.Message.Contains("transient failure", StringComparison.OrdinalIgnoreCase))
-    {
-        context.Response.StatusCode = StatusCodes.Status409Conflict;
-        await context.Response.WriteAsJsonAsync(MbResult<object>.Fail("Transient failure, please retry"));
-    }
-    catch (Exception ex)
-    {
-        context.Response.StatusCode = StatusCodes.Status400BadRequest;
-        await context.Response.WriteAsJsonAsync(MbResult<object>.Fail(ex.Message));
-    }
-});
+app.UseExceptionHandler();
 
 app.UseRouting();
 app.UseAuthentication();
@@ -139,6 +128,12 @@ app.MapOpenApi();
 app.UseSwagger();
 app.UseSwaggerUI();
 
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = [new AllowAllDashboardAuthorizationFilter()]
+});
+app.AddDailyInterestRecurringJob(TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time"));
+
 app.UseCors(c => c
     .AllowAnyHeader()
     .AllowAnyOrigin()
@@ -148,4 +143,5 @@ app.UseCors(c => c
 app.UseHttpsRedirection();
 app.Run();
 
+// ReSharper disable once RedundantTypeDeclarationBody Трюк для использования Program в фикстурах
 public partial class Program { } // For testing purposes

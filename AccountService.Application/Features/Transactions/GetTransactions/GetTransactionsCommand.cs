@@ -1,5 +1,4 @@
-﻿using AccountService.Application.DTOs;
-using MediatR;
+﻿using MediatR;
 
 namespace AccountService.Application.Features.Transactions.GetTransactions;
 

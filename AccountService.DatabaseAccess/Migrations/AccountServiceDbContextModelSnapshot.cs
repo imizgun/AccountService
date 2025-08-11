@@ -17,7 +17,7 @@ namespace AccountService.DatabaseAccess.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.7")
+                .HasAnnotation("ProductVersion", "9.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -63,7 +63,7 @@ namespace AccountService.DatabaseAccess.Migrations
 
                     NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Id"), "hash");
 
-                    b.ToTable("Accounts");
+                    b.ToTable("Accounts", (string)null);
                 });
 
             modelBuilder.Entity("AccountService.Core.Domain.Entities.Transaction", b =>
@@ -117,7 +117,7 @@ namespace AccountService.DatabaseAccess.Migrations
                     b.HasIndex("AccountId", "TransactionDate")
                         .HasDatabaseName("IX_Transactions_AccountId_Date");
 
-                    b.ToTable("Transactions");
+                    b.ToTable("Transactions", (string)null);
                 });
 
             modelBuilder.Entity("AccountService.Core.Domain.Entities.Transaction", b =>

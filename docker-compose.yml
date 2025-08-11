@@ -14,6 +14,7 @@ services:
       - "46320:80"
     depends_on:
       - keycloak
+      - db
 
   keycloak:
     image: quay.io/keycloak/keycloak:latest
@@ -31,3 +32,17 @@ services:
       KC_HOSTNAME_STRICT: false
     volumes:
       - ./account_service-realm.json:/opt/keycloak/data/import/account_service-realm.json
+        
+  
+  db:
+    image: postgres:latest
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: accountService
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "postgres" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5

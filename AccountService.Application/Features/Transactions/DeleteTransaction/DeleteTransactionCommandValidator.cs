@@ -1,4 +1,4 @@
-﻿using AccountService.Core.Domain.Abstraction;
+﻿using AccountService.Core.Features.Transactions;
 using FluentValidation;
 
 namespace AccountService.Application.Features.Transactions.DeleteTransaction;

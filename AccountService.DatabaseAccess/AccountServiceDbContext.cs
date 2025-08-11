@@ -1,5 +1,7 @@
-﻿using AccountService.Core.Domain.Entities;
-using AccountService.DatabaseAccess.Configurations;
+﻿using AccountService.Core.Features.Accounts;
+using AccountService.Core.Features.Transactions;
+using AccountService.DatabaseAccess.Features.Accounts;
+using AccountService.DatabaseAccess.Features.Transactions;
 using Microsoft.EntityFrameworkCore;
 
 namespace AccountService.DatabaseAccess;

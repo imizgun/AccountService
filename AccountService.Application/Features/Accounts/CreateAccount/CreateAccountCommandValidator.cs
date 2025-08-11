@@ -1,5 +1,5 @@
 ﻿using AccountService.Application.Services.Abstractions;
-using AccountService.Core.Domain.Enums;
+using AccountService.Core.Features.Accounts;
 using FluentValidation;
 
 namespace AccountService.Application.Features.Accounts.CreateAccount;
@@ -20,13 +20,6 @@ public class CreateAccountCommandValidator : AbstractValidator<CreateAccountComm
             .WithMessage("Currency cannot be empty")
             .Must(currencyService.IsValidCurrency)
             .WithMessage("Currency must be a valid currency");
-
-        // Поскольку юзеры проверяются теперь из JWT, это излишне
-        // RuleFor(x => x.OwnerId)
-        //     .NotEmpty()
-        //     .WithMessage("OwnerId cannot be empty")
-        //     .Must(clientService.IsClientExists)
-        //     .WithMessage("Owner does not exist");
     }
 
     private static bool BeValidAccountType(string accountType)
