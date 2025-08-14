@@ -1,19 +1,20 @@
 using AccountService;
-using AccountService.Application.Behaviors;
-using AccountService.Application.Features.Accounts.CreateAccount;
-using AccountService.Application.Services.Abstractions;
-using AccountService.Application.Services.Services;
+using AccountService.Application.Features.Accounts.DatabaseAccess;
+using AccountService.Application.Features.Accounts.Domain;
+using AccountService.Application.Features.Accounts.Operations.CreateAccount;
+using AccountService.Application.Features.Interest.DatabaseAccess;
+using AccountService.Application.Features.Transactions.DatabaseAccess;
+using AccountService.Application.Features.Transactions.Domain;
+using AccountService.Application.Shared;
+using AccountService.Application.Shared.Behaviors;
+using AccountService.Application.Shared.DatabaseAccess;
+using AccountService.Application.Shared.DatabaseAccess.Abstractions;
+using AccountService.Application.Shared.DatabaseAccess.Repositories;
+using AccountService.Application.Shared.Domain.Abstraction;
+using AccountService.Application.Shared.Services.Abstractions;
+using AccountService.Application.Shared.Services.Services;
 using AccountService.Background.DailyAccrueInterestRate;
 using AccountService.Configs;
-using AccountService.Core.Abstraction;
-using AccountService.Core.Features.Accounts;
-using AccountService.Core.Features.Transactions;
-using AccountService.DatabaseAccess;
-using AccountService.DatabaseAccess.Abstractions;
-using AccountService.DatabaseAccess.Features.Accounts;
-using AccountService.DatabaseAccess.Features.Background;
-using AccountService.DatabaseAccess.Features.Transactions;
-using AccountService.DatabaseAccess.Repositories;
 using AccountService.Filters;
 using AccountService.Middlewares;
 using FluentValidation;
@@ -79,7 +80,8 @@ builder.Services.AddAuthorization();
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<ValidationExceptionFilter>();
-});
+})
+    .AddApplicationPart(typeof(ControllersAssemblyMarker).Assembly);
 
 builder.Services.AddMediatR(cfg =>
 {
@@ -88,7 +90,8 @@ builder.Services.AddMediatR(cfg =>
 
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MapperProfile>());
 
-builder.Services.AddDbContext<AccountServiceDbContext>(opt => {
+builder.Services.AddDbContext<AccountServiceDbContext>(opt =>
+{
     var cs = builder.Configuration.GetConnectionString(nameof(AccountServiceDbContext));
     opt.UseNpgsql(cs);
 });
@@ -111,7 +114,7 @@ builder.Services.AddHangfireWithPostgres(builder.Configuration);
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope()) 
+using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AccountServiceDbContext>();
     db.Database.Migrate();

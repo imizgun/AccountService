@@ -1,4 +1,4 @@
-﻿using AccountService.DatabaseAccess;
+﻿using AccountService.Application.Shared.DatabaseAccess;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -34,7 +34,8 @@ public class IntegrationTestWebFactory : WebApplicationFactory<Program>, IAsyncL
             if (descriptor is not null)
                 services.Remove(descriptor);
 
-            services.AddDbContext<AccountServiceDbContext>(opt => {
+            services.AddDbContext<AccountServiceDbContext>(opt =>
+            {
                 opt.UseNpgsql(_connectionString);
             });
         });

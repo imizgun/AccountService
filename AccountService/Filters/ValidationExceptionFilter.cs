@@ -1,4 +1,4 @@
-﻿using AccountService.Responses;
+﻿using AccountService.Application.Shared.Contracts;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;

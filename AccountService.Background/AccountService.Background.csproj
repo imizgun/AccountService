@@ -8,10 +8,11 @@
 
     <ItemGroup>
       <ProjectReference Include="..\AccountService.Application\AccountService.Application.csproj" />
-      <ProjectReference Include="..\AccountService.Core\AccountService.Core.csproj" />
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="MassTransit" Version="8.5.2" />
+      <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.2" />
       <PackageReference Include="MediatR" Version="13.0.0" />
     </ItemGroup>
 

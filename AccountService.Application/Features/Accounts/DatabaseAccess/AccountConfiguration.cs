@@ -1,0 +1,32 @@
+﻿using AccountService.Application.Features.Accounts.Domain;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace AccountService.Application.Features.Accounts.DatabaseAccess;
+public class AccountConfiguration : IEntityTypeConfiguration<Account>
+{
+    public void Configure(EntityTypeBuilder<Account> builder)
+    {
+        builder.HasKey(x => x.Id);
+        builder.HasIndex(x => x.Id)
+            .HasDatabaseName("IX_Accounts_OwnerId_Hash")
+            .HasMethod("hash");
+
+        builder.Property(x => x.Xmin)
+            // ReSharper disable once StringLiteralTypo
+            .HasColumnName("xmin")
+            .IsRowVersion()
+            .ValueGeneratedOnAddOrUpdate();
+
+        builder.Property(x => x.AccountType).IsRequired();
+        builder.Property(x => x.Balance).IsRequired();
+        builder.Property(x => x.Currency).IsRequired();
+        builder.Property(x => x.OpeningDate).IsRequired();
+        builder.Property(x => x.OwnerId).IsRequired();
+
+        builder.HasMany(x => x.Transactions)
+            .WithOne(x => x.Account)
+            .HasForeignKey(x => x.AccountId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}

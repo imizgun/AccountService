@@ -1,7 +1,7 @@
 ﻿using AccountService.Application.Features.Accounts;
+using AccountService.Application.Features.Accounts.Domain;
 using AccountService.Application.Features.Transactions;
-using AccountService.Core.Features.Accounts;
-using AccountService.Core.Features.Transactions;
+using AccountService.Application.Features.Transactions.Domain;
 using AutoMapper;
 
 namespace AccountService;
