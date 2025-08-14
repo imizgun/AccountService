@@ -1,18 +1,19 @@
-﻿using AccountService.Core.Domain.Abstraction;
+﻿using AccountService.Core.Features.Accounts;
+using AccountService.DatabaseAccess.Abstractions;
 using MediatR;
 
 namespace AccountService.Application.Features.Accounts.UpdateAccount;
 
-public class UpdateAccountCommandHandler(IAccountRepository accountRepository) : IRequestHandler<UpdateAccountCommand, bool>
+public class UpdateAccountCommandHandler(IAccountRepository accountRepository, IUnitOfWork unitOfWork) : IRequestHandler<UpdateAccountCommand, bool>
 {
     public async Task<bool> Handle(UpdateAccountCommand request, CancellationToken cancellationToken)
     {
-        var account = await accountRepository.GetByIdAsync(request.AccountId, cancellationToken);
+        var account = await accountRepository.GetByIdForUpdateAsync(request.AccountId, cancellationToken);
 
-        if (account == null) return false;
+        if (account == null) throw new InvalidOperationException("Account is already closed");
 
         account.InterestRate = request.InterestRate;
 
-        return await accountRepository.UpdateAccount(account, cancellationToken);
+        return await unitOfWork.SaveChangesAsync(cancellationToken) == 1 ? true : throw new InvalidOperationException("Error while updating account");
     }
 }

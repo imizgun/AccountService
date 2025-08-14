@@ -1,18 +1,23 @@
-﻿using AccountService.Core.Domain.Abstraction;
+﻿using AccountService.Core.Features.Accounts;
+using AccountService.DatabaseAccess.Abstractions;
 using MediatR;
 
 namespace AccountService.Application.Features.Accounts.DeleteAccount;
 
-public class DeleteAccountCommandHandler(IAccountRepository accountRepository) : IRequestHandler<DeleteAccountCommand, bool>
+public class DeleteAccountCommandHandler(IAccountRepository accountRepository, IUnitOfWork unitOfWork) : IRequestHandler<DeleteAccountCommand, bool>
 {
     public async Task<bool> Handle(DeleteAccountCommand request, CancellationToken cancellationToken)
     {
-        var account = await accountRepository.GetByIdAsync(request.AccountId, cancellationToken);
+        var account = await accountRepository.GetByIdForUpdateAsync(request.AccountId, cancellationToken);
 
-        if (account == null) return false;
+        if (account == null) throw new KeyNotFoundException("Account not found");
+        
+        if (account.ClosingDate != null) throw new InvalidOperationException("Account is already closed");
 
         account.Close();
 
-        return await accountRepository.CloseAccountAsync(account, cancellationToken);
+        return await unitOfWork.SaveChangesAsync(cancellationToken) == 1 
+            ? true 
+            : throw new InvalidOperationException("Error while closing account");
     }
 }

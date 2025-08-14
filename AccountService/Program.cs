@@ -3,13 +3,24 @@ using AccountService.Application.Behaviors;
 using AccountService.Application.Features.Accounts.CreateAccount;
 using AccountService.Application.Services.Abstractions;
 using AccountService.Application.Services.Services;
-using AccountService.Core.Domain.Abstraction;
+using AccountService.Background.DailyAccrueInterestRate;
+using AccountService.Configs;
+using AccountService.Core.Abstraction;
+using AccountService.Core.Features.Accounts;
+using AccountService.Core.Features.Transactions;
+using AccountService.DatabaseAccess;
+using AccountService.DatabaseAccess.Abstractions;
+using AccountService.DatabaseAccess.Features.Accounts;
+using AccountService.DatabaseAccess.Features.Background;
+using AccountService.DatabaseAccess.Features.Transactions;
 using AccountService.DatabaseAccess.Repositories;
 using AccountService.Filters;
-using AccountService.Responses;
+using AccountService.Middlewares;
 using FluentValidation;
+using Hangfire;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -77,28 +88,36 @@ builder.Services.AddMediatR(cfg =>
 
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MapperProfile>());
 
-builder.Services.AddSingleton<IAccountRepository, AccountRepository>();
-builder.Services.AddSingleton<ITransactionRepository, TransactionRepository>();
-builder.Services.AddSingleton<IClientService, ClientService>();
+builder.Services.AddDbContext<AccountServiceDbContext>(opt => {
+    var cs = builder.Configuration.GetConnectionString(nameof(AccountServiceDbContext));
+    opt.UseNpgsql(cs);
+});
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
+builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWorkRepository>();
 builder.Services.AddSingleton<ICurrencyService, CurrencyService>();
 
+ValidatorOptions.Global.DefaultRuleLevelCascadeMode = CascadeMode.Stop;
 builder.Services.AddValidatorsFromAssemblyContaining<CreateAccountCommandValidator>();
 builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
+builder.Services.AddScoped<IAccrueInterestRateExecutor, AccrueInterestRateExecutor>();
+builder.Services.AddScoped<IAccrueInterestRateSelector, AccrueInterestRateSelector>();
+builder.Services.AddScoped<AccrueInterestRateJob>();
+builder.Services.AddHangfireWithPostgres(builder.Configuration);
+
 var app = builder.Build();
 
-app.Use(async (context, next) =>
+using (var scope = app.Services.CreateScope()) 
 {
-    try
-    {
-        await next.Invoke();
-    }
-    catch (Exception ex)
-    {
-        context.Response.StatusCode = 400;
-        await context.Response.WriteAsJsonAsync(MbResult<object>.Fail(ex.Message));
-    }
-});
+    var db = scope.ServiceProvider.GetRequiredService<AccountServiceDbContext>();
+    db.Database.Migrate();
+}
+
+app.UseExceptionHandler();
 
 app.UseRouting();
 app.UseAuthentication();
@@ -109,6 +128,12 @@ app.MapOpenApi();
 app.UseSwagger();
 app.UseSwaggerUI();
 
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = [new AllowAllDashboardAuthorizationFilter()]
+});
+app.AddDailyInterestRecurringJob(TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time"));
+
 app.UseCors(c => c
     .AllowAnyHeader()
     .AllowAnyOrigin()
@@ -117,3 +142,6 @@ app.UseCors(c => c
 
 app.UseHttpsRedirection();
 app.Run();
+
+// ReSharper disable once RedundantTypeDeclarationBody Трюк для использования Program в фикстурах
+public partial class Program { } // For testing purposes
