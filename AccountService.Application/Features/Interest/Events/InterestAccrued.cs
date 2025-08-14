@@ -1,4 +1,4 @@
-﻿namespace AccountService.Application.Features.Queues.Domain;
+﻿namespace AccountService.Application.Features.Interest.Events;
 
 public record InterestAccrued(
 	Guid EventId,

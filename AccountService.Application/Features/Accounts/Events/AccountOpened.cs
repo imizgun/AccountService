@@ -1,4 +1,4 @@
-﻿namespace AccountService.Application.Features.Queues.Domain;
+﻿namespace AccountService.Application.Features.Accounts.Events;
 
 public record AccountOpened(
 	Guid EventId,

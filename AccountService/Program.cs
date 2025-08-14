@@ -14,11 +14,13 @@ using AccountService.Application.Shared.Domain.Abstraction;
 using AccountService.Application.Shared.Services.Abstractions;
 using AccountService.Application.Shared.Services.Services;
 using AccountService.Background.DailyAccrueInterestRate;
+using AccountService.Background.Rabbit;
 using AccountService.Configs;
 using AccountService.Filters;
 using AccountService.Middlewares;
 using FluentValidation;
 using Hangfire;
+using MassTransit;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -95,6 +97,8 @@ builder.Services.AddDbContext<AccountServiceDbContext>(opt =>
     var cs = builder.Configuration.GetConnectionString(nameof(AccountServiceDbContext));
     opt.UseNpgsql(cs);
 });
+
+builder.Services.AddMessaging(builder.Configuration);
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();

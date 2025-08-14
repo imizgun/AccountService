@@ -1,4 +1,4 @@
-﻿namespace AccountService.Application.Features.Queues.Domain;
+﻿namespace AccountService.Application.Features.Transactions.Events;
 
 public record TransferCompleted(
 	Guid EventId,

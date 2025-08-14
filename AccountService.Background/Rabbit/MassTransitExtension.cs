@@ -1,4 +1,6 @@
-﻿using AccountService.Application.Features.Queues.Domain;
+﻿using AccountService.Application.Features.Accounts.Events;
+using AccountService.Application.Features.Interest.Events;
+using AccountService.Application.Features.Transactions.Events;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
