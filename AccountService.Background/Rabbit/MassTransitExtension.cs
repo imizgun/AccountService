@@ -13,8 +13,8 @@ public static class MassTransitExtensions
     public static IServiceCollection AddMessaging(this IServiceCollection services, IConfiguration cfg)
     {
         var host = cfg["RabbitMQ:Host"] ?? "rabbitmq";
-        var user = cfg["RabbitMQ:User"] ?? "guest";
-        var pass = cfg["RabbitMQ:Pass"] ?? "guest";
+        var user = cfg["RabbitMQ:Username"] ?? "guest";
+        var pass = cfg["RabbitMQ:Password"] ?? "guest";
         var vhost = cfg["RabbitMQ:VHost"] ?? "/";
 
         services.AddMassTransit(busCfg =>

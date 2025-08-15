@@ -21,7 +21,7 @@ public partial class TransactionController
     [HttpDelete("{transactionId:guid}")]
     public async Task<ActionResult<MbResult<Guid>>> DeleteTransaction(Guid transactionId, CancellationToken cancellationToken)
     {
-        var command = new DeleteTransactionCommand(transactionId);
+        var command = new DeleteTransactionCommand(transactionId, Guid.NewGuid());
         await mediator.Send(command, cancellationToken);
 
         return Ok(MbResult<Guid>.Ok(transactionId, "Deleted successfully"));

@@ -17,4 +17,5 @@ public record MakeTransactionCommand(
     string TransactionType,
     string Currency,
     decimal Amount,
-    string Description) : IRequest<Guid>;
+    string Description,
+    Guid CorrelationId) : IRequest<Guid>;

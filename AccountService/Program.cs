@@ -2,6 +2,8 @@ using AccountService;
 using AccountService.Application.Features.Accounts.DatabaseAccess;
 using AccountService.Application.Features.Accounts.Domain;
 using AccountService.Application.Features.Accounts.Operations.CreateAccount;
+using AccountService.Application.Features.Boxes.DatabaseAccess;
+using AccountService.Application.Features.Boxes.Domain;
 using AccountService.Application.Features.Interest.DatabaseAccess;
 using AccountService.Application.Features.Transactions.DatabaseAccess;
 using AccountService.Application.Features.Transactions.Domain;
@@ -15,12 +17,12 @@ using AccountService.Application.Shared.Services.Abstractions;
 using AccountService.Application.Shared.Services.Services;
 using AccountService.Background.DailyAccrueInterestRate;
 using AccountService.Background.Rabbit;
+using AccountService.Background.Rabbit.Background;
 using AccountService.Configs;
 using AccountService.Filters;
 using AccountService.Middlewares;
 using FluentValidation;
 using Hangfire;
-using MassTransit;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -105,6 +107,7 @@ builder.Services.AddProblemDetails();
 builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWorkRepository>();
+builder.Services.AddScoped<IOutboxMessageRepository, OutboxMessageRepository>();
 builder.Services.AddSingleton<ICurrencyService, CurrencyService>();
 
 ValidatorOptions.Global.DefaultRuleLevelCascadeMode = CascadeMode.Stop;
@@ -112,9 +115,10 @@ builder.Services.AddValidatorsFromAssemblyContaining<CreateAccountCommandValidat
 builder.Services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
 builder.Services.AddScoped<IAccrueInterestRateExecutor, AccrueInterestRateExecutor>();
-builder.Services.AddScoped<IAccrueInterestRateSelector, AccrueInterestRateSelector>();
+builder.Services.AddScoped<IAccrueInterestRateSelector<Account>, AccrueInterestRateSelector>();
 builder.Services.AddScoped<AccrueInterestRateJob>();
 builder.Services.AddHangfireWithPostgres(builder.Configuration);
+builder.Services.AddHostedService<OutboxDispatcher>();
 
 var app = builder.Build();
 

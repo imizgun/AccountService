@@ -2,4 +2,4 @@
 
 namespace AccountService.Application.Features.Accounts.Operations.UpdateAccount;
 
-public record UpdateAccountCommand(Guid AccountId, decimal? InterestRate) : IRequest<bool>;
+public record UpdateAccountCommand(Guid AccountId, decimal InterestRate, Guid CorrelationId) : IRequest<bool>;

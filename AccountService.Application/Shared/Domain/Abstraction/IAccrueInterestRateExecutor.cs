@@ -1,6 +1,8 @@
-﻿namespace AccountService.Application.Shared.Domain.Abstraction;
+﻿using AccountService.Application.Features.Interest.Operations.Accrue;
+
+namespace AccountService.Application.Shared.Domain.Abstraction;
 
 public interface IAccrueInterestRateExecutor
 {
-    Task AccrueInterestRateAsync(Guid accountId, CancellationToken cancellationToken);
+    Task AccrueInterestRateAsync(AccrueInterestCommand command, CancellationToken cancellationToken);
 }

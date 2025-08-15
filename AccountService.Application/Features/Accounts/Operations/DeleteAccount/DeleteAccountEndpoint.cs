@@ -20,7 +20,7 @@ public partial class AccountController
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult<MbResult<Guid>>> DeleteAccount(Guid id, CancellationToken cancellationToken)
     {
-        var command = new DeleteAccountCommand(id);
+        var command = new DeleteAccountCommand(id, Guid.NewGuid());
         await mediator.Send(command, cancellationToken);
 
         return Ok(MbResult<Guid>.Ok(id, "Deleted successfully"));

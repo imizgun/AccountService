@@ -1,5 +1,6 @@
-﻿using MediatR;
+﻿using AccountService.Application.Features.Accounts.Domain;
+using MediatR;
 
 namespace AccountService.Application.Features.Interest.Operations.Accrue;
 
-public record AccrueInterestCommand(Guid AccountId) : IRequest;
+public record AccrueInterestCommand(Account Account, Guid CorrelationId) : IRequest;

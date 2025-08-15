@@ -19,10 +19,19 @@ public partial class TransactionController
     /// <response code="401">Необходима авторизация</response>
     [HttpPost]
     public async Task<ActionResult<MbResult<Guid>>> CreateTransaction(
-        [FromBody] MakeTransactionCommand request,
-        CancellationToken cancellationToken)
+        [FromBody] MakeTransactionRequest request,
+        CancellationToken cancellationToken) 
     {
-        var result = await mediator.Send(request, cancellationToken);
+        var command = new MakeTransactionCommand(
+                request.AccountId,
+                request.CounterpartyAccountId,
+                request.TransactionType,
+                request.Currency,
+                request.Amount,
+                request.Description,
+                Guid.NewGuid()
+            );
+        var result = await mediator.Send(command, cancellationToken);
 
         return Ok(MbResult<Guid>.Ok(result, "Transaction created successfully"));
     }

@@ -41,7 +41,7 @@ public class ParallelTransferTests(IntegrationTestWebFactory factory, ITestOutpu
         Assert.True(accountResponse1!.IsSuccess);
         Assert.True(accountResponse2!.IsSuccess);
 
-        var transaction1 = new MakeTransactionCommand(accountResponse1.Result, null, "Credit", "USD", balance, "Test");
+        var transaction1 = new MakeTransactionRequest(accountResponse1.Result, null, "Credit", "USD", balance, "Test");
         var transaction2 = transaction1 with { AccountId = accountResponse2.Result };
 
         var credit1 = await Client.PostAsJsonAsync("api/transactions", transaction1);
@@ -56,7 +56,7 @@ public class ParallelTransferTests(IntegrationTestWebFactory factory, ITestOutpu
         var transfers = Enumerable.Range(0, 50)
             .Select(n =>
             {
-                var transactionDto = new MakeTransactionCommand(
+                var transactionDto = new MakeTransactionRequest(
                     n % 2 == 0 ? accountResponse1.Result : accountResponse2.Result,
                     n % 2 == 1 ? accountResponse1.Result : accountResponse2.Result,
                     "Debit",

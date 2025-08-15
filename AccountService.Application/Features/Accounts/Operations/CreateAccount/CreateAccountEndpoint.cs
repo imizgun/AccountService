@@ -30,7 +30,8 @@ public partial class AccountController
                 ownerId,
                 request.Currency,
                 request.AccountType,
-                request.InterestRate
+                request.InterestRate,
+                Guid.NewGuid()
             );
 
         var result = await mediator.Send(command, cancellationToken);

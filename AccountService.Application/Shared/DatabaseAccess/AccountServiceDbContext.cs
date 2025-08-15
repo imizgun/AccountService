@@ -13,8 +13,10 @@ public partial class AccountServiceDbContext : DbContext
         base.OnModelCreating(modelBuilder);
         OnModelCreatingAccounts(modelBuilder);
         OnModelCreatingTransactions(modelBuilder);
+        OnModelCreatingEvents(modelBuilder);
     }
 
     partial void OnModelCreatingAccounts(ModelBuilder modelBuilder);
     partial void OnModelCreatingTransactions(ModelBuilder modelBuilder);
+    partial void OnModelCreatingEvents(ModelBuilder modelBuilder);
 }

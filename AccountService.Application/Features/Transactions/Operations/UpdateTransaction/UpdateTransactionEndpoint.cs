@@ -24,7 +24,7 @@ public partial class TransactionController
         [FromBody] UpdateTransactionRequest request,
         CancellationToken cancellationToken)
     {
-        var command = new UpdateTransactionCommand(transactionId, request.Description);
+        var command = new UpdateTransactionCommand(transactionId, request.Description, Guid.NewGuid());
         await mediator.Send(command, cancellationToken);
 
         return Ok(MbResult<Guid>.Ok(transactionId, "Updated successfully"));

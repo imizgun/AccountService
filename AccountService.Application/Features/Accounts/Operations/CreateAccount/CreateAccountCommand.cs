@@ -9,8 +9,11 @@ namespace AccountService.Application.Features.Accounts.Operations.CreateAccount;
 /// <param name="Currency">Валюта</param>
 /// <param name="AccountType">Тип аккаунта</param>
 /// <param name="InterestRate">Процентная ставка</param>
+/// <param name="CorrelationId">Корреляционный ID для отслеживания транзакций</param>
 public record CreateAccountCommand(
     Guid OwnerId,
     string Currency,
     string AccountType,
-    decimal? InterestRate) : IRequest<Guid>;
+    decimal? InterestRate,
+    Guid CorrelationId
+    ) : IRequest<Guid>;

@@ -1,22 +1,47 @@
-﻿using AccountService.Application.Features.Transactions.Domain;
+﻿using AccountService.Application.Features.Boxes.Domain;
+using AccountService.Application.Features.Transactions.Domain;
+using AccountService.Application.Features.Transactions.Events;
 using AccountService.Application.Shared.DatabaseAccess.Abstractions;
+using AccountService.Application.Shared.Events;
 using MediatR;
 
 namespace AccountService.Application.Features.Transactions.Operations.DeleteTransaction;
 
-public class DeleteTransactionCommandHandler(ITransactionRepository transactionRepository, IUnitOfWork unitOfWork) : IRequestHandler<DeleteTransactionCommand, bool>
+public class DeleteTransactionCommandHandler(
+    ITransactionRepository transactionRepository, 
+    IUnitOfWork unitOfWork,
+    IOutboxMessageRepository outboxMessageRepository) : IRequestHandler<DeleteTransactionCommand, bool>
 {
-    public async Task<bool> Handle(DeleteTransactionCommand request, CancellationToken cancellationToken)
+    public async Task<bool> Handle(DeleteTransactionCommand request, CancellationToken cancellationToken) 
     {
-        var transaction = await transactionRepository.GetByIdForUpdateAsync(request.TransactionId, cancellationToken);
+        await unitOfWork.BeginTransactionAsync(cancellationToken);
 
-        if (transaction == null)
-            throw new KeyNotFoundException($"Transaction with ID {request.TransactionId} not found");
+        try {
+            var transaction =
+                await transactionRepository.GetByIdForUpdateAsync(request.TransactionId, cancellationToken);
 
-        if (transaction.IsDeleted) return true;
+            if (transaction == null)
+                throw new KeyNotFoundException($"Transaction with ID {request.TransactionId} not found");
 
-        transaction.IsDeleted = true;
+            if (transaction.IsDeleted) return true;
 
-        return await unitOfWork.SaveChangesAsync(cancellationToken) == 1 ? true : throw new InvalidOperationException("Failed to delete transaction");
+            transaction.IsDeleted = true;
+            var deleteTransactionEvent = new TransactionDeleted(
+                Guid.NewGuid(),
+                DateTime.UtcNow,
+                new Meta(request.CorrelationId),
+                transaction.Id
+            );
+
+            await outboxMessageRepository.AddAsync(new OutboxMessage(deleteTransactionEvent), cancellationToken);
+
+            return await unitOfWork.SaveChangesAsync(cancellationToken) == 2
+                ? true
+                : throw new InvalidOperationException("Failed to delete transaction");
+        }
+        catch {
+            await unitOfWork.RollbackAsync(cancellationToken);
+            throw;
+        }
     }
 }

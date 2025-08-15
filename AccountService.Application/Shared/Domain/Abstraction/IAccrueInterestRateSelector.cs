@@ -1,6 +1,6 @@
 ﻿namespace AccountService.Application.Shared.Domain.Abstraction;
 
-public interface IAccrueInterestRateSelector
+public interface IAccrueInterestRateSelector<T>
 {
-    Task<List<Guid>> SelectAccountsForAccrualAsync(CancellationToken cancellationToken);
+    Task<List<T>> SelectAccountsForAccrualAsync(CancellationToken cancellationToken);
 }

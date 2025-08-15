@@ -1,6 +1,9 @@
 ﻿using AccountService.Application.Features.Accounts.Domain;
+using AccountService.Application.Features.Boxes.Domain;
 using AccountService.Application.Features.Transactions.Domain;
+using AccountService.Application.Features.Transactions.Events;
 using AccountService.Application.Shared.DatabaseAccess.Abstractions;
+using AccountService.Application.Shared.Events;
 using MediatR;
 
 namespace AccountService.Application.Features.Transactions.Operations.MakeTransactions;
@@ -8,7 +11,8 @@ namespace AccountService.Application.Features.Transactions.Operations.MakeTransa
 public class MakeTransactionsCommandHandler(
     ITransactionRepository transactionRepository,
     IAccountRepository accountRepository,
-    IUnitOfWork unitOfWork) : IRequestHandler<MakeTransactionCommand, Guid>
+    IUnitOfWork unitOfWork,
+    IOutboxMessageRepository outboxMessageRepository) : IRequestHandler<MakeTransactionCommand, Guid>
 {
     public async Task<Guid> Handle(MakeTransactionCommand request, CancellationToken cancellationToken)
     {
@@ -46,21 +50,72 @@ public class MakeTransactionsCommandHandler(
                 transactionType,
                 request.Description
             );
+            DefaultEvent firstTransactionEvent;
 
-            if (transactionType == ETransactionType.Debit)
+            if (transactionType == ETransactionType.Debit) 
+            {
                 account.Withdraw(request.Amount);
-            else
+                firstTransactionEvent = new MoneyDebited(
+                        Guid.NewGuid(),
+                        DateTime.UtcNow,
+                        new Meta(request.CorrelationId),
+                        request.AccountId,
+                        request.Amount,
+                        request.Currency,
+                        transaction.Id,
+                        request.Description
+                    );
+            }
+            else 
+            {
                 account.Deposit(request.Amount);
+                firstTransactionEvent = new MoneyCredited(
+                    Guid.NewGuid(),
+                    DateTime.UtcNow,
+                    new Meta(request.CorrelationId),
+                    request.AccountId,
+                    request.Amount,
+                    request.Currency,
+                    request.CorrelationId
+                    );
+            }
 
             var transactionId = await transactionRepository.CreateAsync(transaction, cancellationToken);
-            // await accountRepository.UpdateAccount(account, cancellationToken);
+            await outboxMessageRepository.AddAsync(new OutboxMessage(firstTransactionEvent), cancellationToken);
 
             if (counterpartyAccount is not null)
             {
                 var counterpartyTransaction = transaction.GetReverseTransaction();
                 counterpartyAccount.Deposit(request.Amount);
+                
+                var counterpartyEvent = new MoneyDebited(
+                    Guid.NewGuid(),
+                    DateTime.UtcNow,
+                    new Meta(request.CorrelationId),
+                    request.CounterpartyAccountId!.Value,
+                    request.Amount,
+                    request.Currency,
+                    transaction.Id,
+                    request.Description
+                );
+                
                 await transactionRepository.CreateAsync(counterpartyTransaction, cancellationToken);
+                await outboxMessageRepository.AddAsync(new OutboxMessage(counterpartyEvent), cancellationToken);
+
             }
+            
+            var transferEvent = new TransferCompleted(
+                    Guid.NewGuid(),
+                    DateTime.UtcNow,
+                    new Meta(request.CorrelationId),
+                    request.AccountId,
+                    request.CounterpartyAccountId ?? null,
+                    request.Amount,
+                    request.Currency,
+                    transaction.Id
+                );
+
+            await outboxMessageRepository.AddAsync(new OutboxMessage(transferEvent), cancellationToken);
 
             // Сохранение изменений в БД
             await unitOfWork.SaveChangesAsync(cancellationToken);

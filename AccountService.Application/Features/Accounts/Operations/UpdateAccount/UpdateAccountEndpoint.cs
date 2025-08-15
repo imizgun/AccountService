@@ -21,7 +21,7 @@ public partial class AccountController
     [HttpPatch("{id:guid}")]
     public async Task<ActionResult<MbResult<Guid>>> UpdateAccount(Guid id, [FromBody] UpdateAccountRequest command, CancellationToken cancellationToken)
     {
-        await mediator.Send(new UpdateAccountCommand(id, command.InterestRate), cancellationToken);
+        await mediator.Send(new UpdateAccountCommand(id, command.InterestRate, Guid.NewGuid()), cancellationToken);
 
         return Ok(MbResult<Guid>.Ok(id, "Updated successfully"));
     }
