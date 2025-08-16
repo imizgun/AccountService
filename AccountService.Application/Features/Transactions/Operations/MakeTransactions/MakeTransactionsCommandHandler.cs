@@ -30,6 +30,8 @@ public class MakeTransactionsCommandHandler(
         {
             var account = await accountRepository.GetByIdForUpdateAsync(request.AccountId, cancellationToken)
                           ?? throw new InvalidOperationException("Account not found");
+            
+            if (account.IsFrozen) throw new InvalidOperationException("Account is frozen, you can't make transactions from it.");
 
             var counterpartyAccount = request.CounterpartyAccountId is not null
                 ? await accountRepository.GetByIdForUpdateAsync(request.CounterpartyAccountId.Value,

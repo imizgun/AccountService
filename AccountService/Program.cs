@@ -18,6 +18,7 @@ using AccountService.Application.Shared.Services.Services;
 using AccountService.Background.DailyAccrueInterestRate;
 using AccountService.Background.Rabbit;
 using AccountService.Background.Rabbit.Background;
+using AccountService.Background.Rabbit.Filters;
 using AccountService.Configs;
 using AccountService.Filters;
 using AccountService.Middlewares;

@@ -22,4 +22,10 @@ public class AccountRepository(AccountServiceDbContext context) : BaseRepository
 
         return balance == expectedAmount;
     }
+
+    public async Task ToggleFrozenAccountAsync(Guid ownerId, bool toState, CancellationToken cancellationToken) 
+    {
+        await DbSet.Where(x => x.OwnerId == ownerId).
+            ExecuteUpdateAsync(x => x.SetProperty(a => a.IsFrozen, toState), cancellationToken);
+    }
 }

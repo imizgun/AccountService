@@ -7,9 +7,6 @@ public class ClientBlocked(
 	DateTime occurredAt,
 	Meta meta,
 	Guid clientId
-) : IEventIdentifiable {
-	public Guid EventId { get; set; } = eventId;
-	public DateTime OccurredAt { get; set; } = occurredAt;
-	public Meta Meta { get; set; } = meta;
+) : DefaultEvent {
 	public Guid ClientId { get; set; } = clientId;
 }

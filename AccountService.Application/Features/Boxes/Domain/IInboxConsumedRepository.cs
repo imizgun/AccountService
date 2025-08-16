@@ -2,6 +2,6 @@
 
 public interface IInboxConsumedRepository
 {
-	Task<bool> AddAsync(InboxConsumed consumed, CancellationToken cancellationToken = default);
-	Task<bool> ExistsAsync(Guid messageId, string handler, CancellationToken cancellationToken = default);
+	Task AddAsync(InboxConsumed consumed, CancellationToken cancellationToken = default);
+	Task<bool> ExistsAsync(Guid messageId, CancellationToken cancellationToken = default);
 }
