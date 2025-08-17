@@ -5,8 +5,10 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Testcontainers.PostgreSql;
 using Xunit;
+using Xunit.Sdk;
 
 namespace AccountService.Tests.IntegrationTests;
 
@@ -18,6 +20,12 @@ public class IntegrationTestWebFactory : WebApplicationFactory<Program>, IAsyncL
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
+
+        builder.ConfigureLogging(lb => {
+            lb.ClearProviders();
+            lb.SetMinimumLevel(LogLevel.Information);
+            lb.AddConsole();
+        });
 
         builder.ConfigureTestServices(services =>
         {
@@ -41,7 +49,7 @@ public class IntegrationTestWebFactory : WebApplicationFactory<Program>, IAsyncL
         });
     }
 
-    public async Task InitializeAsync()
+    public virtual async Task InitializeAsync()
     {
         _dbContainer = new PostgreSqlBuilder()
             .WithImage("postgres:latest")
@@ -65,7 +73,7 @@ public class IntegrationTestWebFactory : WebApplicationFactory<Program>, IAsyncL
         await db.Database.MigrateAsync();
     }
 
-    public new async Task DisposeAsync()
+    public new virtual async Task DisposeAsync()
     {
         if (_dbContainer is not null)
             await _dbContainer.StopAsync();

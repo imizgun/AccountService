@@ -18,7 +18,6 @@ using AccountService.Application.Shared.Services.Services;
 using AccountService.Background.DailyAccrueInterestRate;
 using AccountService.Background.Rabbit;
 using AccountService.Background.Rabbit.Background;
-using AccountService.Background.Rabbit.Filters;
 using AccountService.Configs;
 using AccountService.Filters;
 using AccountService.Middlewares;
@@ -26,12 +25,39 @@ using FluentValidation;
 using Hangfire;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Host.UseSerilog((ctx, services, cfg) =>
+    cfg.ReadFrom.Configuration(ctx.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext());
+
+builder.Services.AddHttpLogging(logging => {
+    logging.LoggingFields = 
+        HttpLoggingFields.RequestProtocol |
+        HttpLoggingFields.RequestMethod |
+        HttpLoggingFields.RequestPath |
+        HttpLoggingFields.RequestQuery |
+        HttpLoggingFields.RequestHeaders |
+        HttpLoggingFields.RequestBody |
+        HttpLoggingFields.ResponseStatusCode |
+        HttpLoggingFields.ResponseHeaders |
+        HttpLoggingFields.ResponseBody |
+        HttpLoggingFields.Duration;
+    
+    logging.RequestBodyLogLimit = 4096;
+    logging.ResponseBodyLogLimit = 4096;
+    
+    logging.MediaTypeOptions.AddText("application/json");
+    logging.MediaTypeOptions.AddText("application/xml");
+    logging.MediaTypeOptions.AddText("text/plain");
+});
 builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -109,6 +135,8 @@ builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWorkRepository>();
 builder.Services.AddScoped<IOutboxMessageRepository, OutboxMessageRepository>();
+builder.Services.AddScoped<IInboxDeadLetterRepository, InboxDeadLetterRepository>();
+builder.Services.AddScoped<IInboxConsumedRepository, InboxConsumedRepository>();
 builder.Services.AddSingleton<ICurrencyService, CurrencyService>();
 
 ValidatorOptions.Global.DefaultRuleLevelCascadeMode = CascadeMode.Stop;
@@ -122,6 +150,25 @@ builder.Services.AddHangfireWithPostgres(builder.Configuration);
 builder.Services.AddHostedService<OutboxDispatcher>();
 
 var app = builder.Build();
+
+app.UseHttpLogging();
+app.UseSerilogRequestLogging(options =>
+{
+    options.MessageTemplate = "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+            
+    options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+    {
+        diagnosticContext.Set("RequestHost", httpContext.Request.Host.Value!);
+        diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
+        diagnosticContext.Set("UserAgent", httpContext.Request.Headers.UserAgent.FirstOrDefault()!);
+        diagnosticContext.Set("RemoteIP", httpContext.Connection.RemoteIpAddress?.ToString()!);
+        
+        if (httpContext.User.Identity?.IsAuthenticated == true)
+        {
+            diagnosticContext.Set("UserId", httpContext.User.Identity.Name!);
+        }
+    };
+});
 
 using (var scope = app.Services.CreateScope())
 {

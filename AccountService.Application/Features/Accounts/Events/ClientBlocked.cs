@@ -7,6 +7,6 @@ public class ClientBlocked(
 	DateTime occurredAt,
 	Meta meta,
 	Guid clientId
-) : DefaultEvent {
+) : DefaultEvent(eventId, meta, occurredAt) {
 	public Guid ClientId { get; set; } = clientId;
 }

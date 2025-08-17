@@ -15,6 +15,7 @@ public class CreateAccountCommandHandler(
 {
     public async Task<Guid> Handle(CreateAccountCommand request, CancellationToken cancellationToken)
     {
+        var eventId = Guid.NewGuid();
         if (!Enum.TryParse<AccountType>(request.AccountType, true, out var type))
             throw new ArgumentException("Invalid account type");
 
@@ -31,7 +32,7 @@ public class CreateAccountCommandHandler(
             var res = await accountRepository.CreateAsync(newAccount, cancellationToken);
         
             var openAccountEvent = new AccountOpened(
-                Guid.NewGuid(), 
+                eventId, 
                 DateTime.UtcNow, 
                 new Meta(request.CorrelationId),
                 newAccount.Id,

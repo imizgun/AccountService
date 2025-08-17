@@ -13,11 +13,11 @@ public class OutboxMessage
 
 	public OutboxMessage() { }
 
-	public OutboxMessage(object @event) 
+	public OutboxMessage(DefaultEvent @event) 
 	{
 		Id = Guid.NewGuid();
 		Type = @event.GetType().AssemblyQualifiedName!;
-		Payload = JsonSerializer.Serialize(@event);
+		Payload = JsonSerializer.Serialize<object>(@event);
 		OccurredAt = DateTime.UtcNow;
 		PublishedAt = null;
 	}

@@ -19,6 +19,8 @@ public static class MassTransitExtensions
         var user = cfg["RabbitMQ:Username"] ?? "guest";
         var pass = cfg["RabbitMQ:Password"] ?? "guest";
         var vhost = cfg["RabbitMQ:VHost"] ?? "/";
+        var port  = int.TryParse(cfg["RabbitMQ:Port"], out var p) ? p : 5672;
+        var vhostPath = vhost == "/" ? "/" : (vhost.StartsWith('/') ? vhost : "/" + vhost);
         
         services.AddScoped(typeof(InboxFilter<>));
 
@@ -29,13 +31,15 @@ public static class MassTransitExtensions
             
             busCfg.UsingRabbitMq((context, rabbit) =>
             {
-                rabbit.Host(host, vhost, h =>
+                rabbit.Host(new Uri($"rabbitmq://{host}:{port}{vhostPath}"),h =>
                 {
                     h.Username(user);
                     h.Password(pass);
                 });
                 
 
+                rabbit.Message<DefaultEvent>(x => x.SetEntityName("account.events"));
+                rabbit.Message<IEventIdentifiable>(x => x.SetEntityName("account.events"));
                 rabbit.Message<AccountOpened>(x => x.SetEntityName("account.events"));
                 rabbit.Message<AccountUpdated>(x => x.SetEntityName("account.events"));
                 rabbit.Message<AccountClosed>(x => x.SetEntityName("account.events"));
@@ -45,7 +49,11 @@ public static class MassTransitExtensions
                 rabbit.Message<TransactionDeleted>(x => x.SetEntityName("account.events"));
                 rabbit.Message<TransactionUpdated>(x => x.SetEntityName("account.events"));
                 rabbit.Message<InterestAccrued>(x => x.SetEntityName("account.events"));
+                rabbit.Message<ClientBlocked>(x => x.SetEntityName("account.events"));
+                rabbit.Message<ClientUnblocked>(x => x.SetEntityName("account.events"));
 
+                rabbit.Publish<DefaultEvent>(x => x.ExchangeType = ExchangeType.Topic);
+                rabbit.Publish<IEventIdentifiable>(x => x.ExchangeType = ExchangeType.Topic);
                 rabbit.Publish<AccountOpened>(x => x.ExchangeType = ExchangeType.Topic);
                 rabbit.Publish<AccountUpdated>(x => x.ExchangeType = ExchangeType.Topic);
                 rabbit.Publish<AccountClosed>(x => x.ExchangeType = ExchangeType.Topic);
@@ -55,9 +63,8 @@ public static class MassTransitExtensions
                 rabbit.Publish<TransactionDeleted>(x => x.ExchangeType = ExchangeType.Topic);
                 rabbit.Publish<TransactionUpdated>(x => x.ExchangeType = ExchangeType.Topic);
                 rabbit.Publish<InterestAccrued>(x => x.ExchangeType = ExchangeType.Topic);
-                
-                rabbit.Publish<DefaultEvent>(x => x.Exclude = true);
-                rabbit.Publish<IEventIdentifiable>(x => x.Exclude = true);
+                rabbit.Publish<ClientBlocked>(x => x.ExchangeType = ExchangeType.Topic);
+                rabbit.Publish<ClientUnblocked>(x => x.ExchangeType = ExchangeType.Topic);
                 
 
                 rabbit.ReceiveEndpoint("account.crm", e =>
@@ -93,6 +100,16 @@ public static class MassTransitExtensions
                         s.RoutingKey = "client.#";
                     });
                     
+                    e.Bind<ClientBlocked>(s => {
+                        s.ExchangeType = ExchangeType.Topic;
+                        s.RoutingKey = "client.blocked";
+                    });
+                    e.Bind<ClientUnblocked>(s => {
+                        s.ExchangeType = ExchangeType.Topic;
+                        s.RoutingKey = "client.unblocked";
+                    });
+                    
+                    // e.UseConsumeFilter(typeof(EnvelopeFilter<>), context);
                     e.UseConsumeFilter(typeof(InboxFilter<>), context);
 
                     e.ConfigureConsumer<ClientBlockedConsumer>(context);

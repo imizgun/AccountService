@@ -8,9 +8,11 @@ using AccountService.Application.Shared.Contracts;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace AccountService.Tests.IntegrationTests;
+namespace AccountService.Tests.IntegrationTests.Tests;
 
-public class ParallelTransferTests(IntegrationTestWebFactory factory, ITestOutputHelper output) : BaseIntegrationTest(factory, output)
+[Collection("Sequential")]
+public class ParallelTransferTests(IntegrationTestWebFactory factory, ITestOutputHelper output)
+    : BaseIntegrationTest<IntegrationTestWebFactory>(factory, output), IClassFixture<IntegrationTestWebFactory>
 {
     [Fact]
     public async Task Transfer_Parallel_Accounts()
