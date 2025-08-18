@@ -17,13 +17,14 @@ public class AccountTests
         var accountWithInterestDeposit = Account.Create(ownerId, AccountType.Deposit, "USD", 5.0m);
         var accountWithInterestCredit = Account.Create(ownerId, AccountType.Credit, "USD", 5.0m);
 
-        Account CreateAccountWithInterestChecking() => Account.Create(ownerId, AccountType.Checking, "USD", 5.0m);
-
         // Assert
         Assert.NotEqual(Guid.Empty, account.Id);
         Assert.NotEqual(Guid.Empty, accountWithInterestDeposit.Id);
         Assert.NotEqual(Guid.Empty, accountWithInterestCredit.Id);
         Assert.Throws<ArgumentException>(CreateAccountWithInterestChecking);
+        return;
+
+        Account CreateAccountWithInterestChecking() => Account.Create(ownerId, AccountType.Checking, "USD", 5.0m);
     }
 
     [Fact]

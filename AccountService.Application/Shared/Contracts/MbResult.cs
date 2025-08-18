@@ -30,7 +30,7 @@ public class MbResult<T>
     /// <param name="result">Результат операции</param>
     /// <param name="message">Сообщение об операции</param>
     /// <returns>Instance MbResult</returns>
-    public static MbResult<T> Ok(T result, string? message = null) => new()
+    public static MbResult<T> Ok(T? result, string? message = null) => new()
     {
         IsSuccess = true,
         Result = result,

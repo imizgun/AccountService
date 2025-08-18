@@ -8,7 +8,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Testcontainers.PostgreSql;
 using Xunit;
-using Xunit.Sdk;
 
 namespace AccountService.Tests.IntegrationTests;
 
@@ -21,7 +20,8 @@ public class IntegrationTestWebFactory : WebApplicationFactory<Program>, IAsyncL
     {
         builder.UseEnvironment("Testing");
 
-        builder.ConfigureLogging(lb => {
+        builder.ConfigureLogging(lb =>
+        {
             lb.ClearProviders();
             lb.SetMinimumLevel(LogLevel.Information);
             lb.AddConsole();

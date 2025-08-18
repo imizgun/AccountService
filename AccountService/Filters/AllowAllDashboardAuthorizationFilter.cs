@@ -1,6 +1,6 @@
 ﻿using Hangfire.Dashboard;
 
-namespace AccountService.Configs;
+namespace AccountService.Filters;
 
 public class AllowAllDashboardAuthorizationFilter : IDashboardAuthorizationFilter
 {

@@ -30,7 +30,7 @@ public class MakeTransactionsCommandHandler(
         {
             var account = await accountRepository.GetByIdForUpdateAsync(request.AccountId, cancellationToken)
                           ?? throw new InvalidOperationException("Account not found");
-            
+
             if (account.IsFrozen) throw new InvalidOperationException("Account is frozen, you can't make transactions from it.");
 
             var counterpartyAccount = request.CounterpartyAccountId is not null
@@ -54,7 +54,7 @@ public class MakeTransactionsCommandHandler(
             );
             DefaultEvent firstTransactionEvent;
 
-            if (transactionType == ETransactionType.Debit) 
+            if (transactionType == ETransactionType.Debit)
             {
                 account.Withdraw(request.Amount);
                 firstTransactionEvent = new MoneyDebited(
@@ -68,7 +68,7 @@ public class MakeTransactionsCommandHandler(
                         request.Description
                     );
             }
-            else 
+            else
             {
                 account.Deposit(request.Amount);
                 firstTransactionEvent = new MoneyCredited(
@@ -89,7 +89,7 @@ public class MakeTransactionsCommandHandler(
             {
                 var counterpartyTransaction = transaction.GetReverseTransaction();
                 counterpartyAccount.Deposit(request.Amount);
-                
+
                 var counterpartyEvent = new MoneyDebited(
                     Guid.NewGuid(),
                     DateTime.UtcNow,
@@ -100,12 +100,12 @@ public class MakeTransactionsCommandHandler(
                     transaction.Id,
                     request.Description
                 );
-                
+
                 await transactionRepository.CreateAsync(counterpartyTransaction, cancellationToken);
                 await outboxMessageRepository.AddAsync(new OutboxMessage(counterpartyEvent), cancellationToken);
 
             }
-            
+
             var transferEvent = new TransferCompleted(
                     Guid.NewGuid(),
                     DateTime.UtcNow,

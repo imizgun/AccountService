@@ -11,8 +11,8 @@ public class RabbitIntegrationTestFactory : IntegrationTestWebFactory
 {
     private RabbitMqContainer? _rabbit;
     private int _rabbitPort;
-    private readonly string _rabbitUser = "admin";
-    private readonly string _rabbitPass = "admin";
+    private const string RabbitUser = "admin";
+    private const string RabbitPass = "admin";
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -31,8 +31,8 @@ public class RabbitIntegrationTestFactory : IntegrationTestWebFactory
     {
         _rabbit = new RabbitMqBuilder()
             .WithImage("rabbitmq:4-management")
-            .WithUsername(_rabbitUser)
-            .WithPassword(_rabbitPass)
+            .WithUsername(RabbitUser)
+            .WithPassword(RabbitPass)
             .WithPortBinding(0, 5672)
             .Build();
 
@@ -41,8 +41,8 @@ public class RabbitIntegrationTestFactory : IntegrationTestWebFactory
         
         Environment.SetEnvironmentVariable("RabbitMQ__Host", "localhost");
         Environment.SetEnvironmentVariable("RabbitMQ__Port", _rabbitPort.ToString());
-        Environment.SetEnvironmentVariable("RabbitMQ__Username", _rabbitUser);
-        Environment.SetEnvironmentVariable("RabbitMQ__Password", _rabbitPass);
+        Environment.SetEnvironmentVariable("RabbitMQ__Username", RabbitUser);
+        Environment.SetEnvironmentVariable("RabbitMQ__Password", RabbitPass);
         Environment.SetEnvironmentVariable("RabbitMQ__VHost", "/");
         
         await base.InitializeAsync();

@@ -18,16 +18,17 @@ public class AccrueInterestRateExecutor(
     public async Task AccrueInterestRateAsync(AccrueInterestCommand command, CancellationToken cancellationToken)
     {
         await unitOfWork.BeginTransactionAsync(cancellationToken);
-        try {
+        try
+        {
             var balance = command.Account.Balance;
             var interestRate = command.Account.InterestRate ?? 1;
-            
+
             await dbContext.Database.ExecuteSqlRawAsync(
                 "CALL accrue_interest(@account_id)",
                 new NpgsqlParameter("account_id", command.Account.Id));
-            
+
             var accrueEvent = new InterestAccrued(
-                Guid.NewGuid(), 
+                Guid.NewGuid(),
                 DateTime.UtcNow,
                 new Meta(command.CorrelationId),
                 command.Account.Id,
@@ -37,7 +38,7 @@ public class AccrueInterestRateExecutor(
                 );
 
             await outboxMessageRepository.AddAsync(new OutboxMessage(accrueEvent), cancellationToken);
-            
+
             await dbContext.SaveChangesAsync(cancellationToken);
             await unitOfWork.CommitAsync(cancellationToken);
         }

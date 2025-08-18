@@ -29,14 +29,14 @@ public class InboxFilter<T>(
             {
                 logger.LogWarning("Message with ID {MessageId} has already been processed by handler {HandlerName}. Skipping processing.",
                     messageId, typeof(T).Name);
-                
+
                 await unitOfWork.CommitAsync(context.CancellationToken);
                 return;
             }
 
             logger.LogInformation("Message with ID {MessageId} wasn't processed yet. Processing with handler {HandlerName}.",
                 messageId, typeof(T).Name);
-            
+
             await next.Send(context);
 
             await inboxConsumedRepository.AddAsync(new InboxConsumed
@@ -48,7 +48,7 @@ public class InboxFilter<T>(
 
             await unitOfWork.SaveChangesAsync(context.CancellationToken);
             await unitOfWork.CommitAsync(context.CancellationToken);
-            
+
             logger.LogInformation("[InboxFilter] Message {MessageId} processed successfully", messageId);
         }
         catch (DbUpdateException e) when (IsUniqueViolation(e))

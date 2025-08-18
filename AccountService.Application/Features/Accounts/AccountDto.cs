@@ -46,7 +46,7 @@ public class AccountDto
     /// Дата закрытия (nullable)
     /// </summary>
     public DateTime? ClosingDate { get; set; }
-    
+
     /// <summary>
     /// Флаг заморозки счета
     /// </summary>

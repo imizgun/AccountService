@@ -20,7 +20,7 @@ public partial class TransactionController
     [HttpPost]
     public async Task<ActionResult<MbResult<Guid>>> CreateTransaction(
         [FromBody] MakeTransactionRequest request,
-        CancellationToken cancellationToken) 
+        CancellationToken cancellationToken)
     {
         var command = new MakeTransactionCommand(
                 request.AccountId,

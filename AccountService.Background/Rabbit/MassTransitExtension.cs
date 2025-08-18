@@ -19,24 +19,37 @@ public static class MassTransitExtensions
         var user = cfg["RabbitMQ:Username"] ?? "guest";
         var pass = cfg["RabbitMQ:Password"] ?? "guest";
         var vhost = cfg["RabbitMQ:VHost"] ?? "/";
-        var port  = int.TryParse(cfg["RabbitMQ:Port"], out var p) ? p : 5672;
-        var vhostPath = vhost == "/" ? "/" : (vhost.StartsWith('/') ? vhost : "/" + vhost);
-        
+        var port = int.TryParse(cfg["RabbitMQ:Port"], out var p) ? p : 5672;
+        var vhostPath = vhost == "/" ? "/" : vhost.StartsWith('/') ? vhost : "/" + vhost;
+
+        var factory = new ConnectionFactory { Uri = new Uri($"amqp://{user}:{pass}@{host}:{port}/") };
+        using var connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
+        using var channel = connection.CreateChannelAsync().GetAwaiter().GetResult();
+
+        channel.ExchangeDeclareAsync("account.events", ExchangeType.Topic, durable: true, autoDelete: false).GetAwaiter().GetResult();
+
+        channel.QueueDeclareAsync("account.crm", durable: true, exclusive: false, autoDelete: false).GetAwaiter().GetResult();
+        channel.QueueBindAsync("account.crm", "account.events", "account.*").GetAwaiter().GetResult();
+
+        channel.QueueDeclareAsync("account.audit", durable: true, exclusive: false, autoDelete: false).GetAwaiter().GetResult();
+        channel.QueueBindAsync("account.audit", "account.events", "#").GetAwaiter().GetResult();
+
+        channel.QueueDeclareAsync("account.notifications", durable: true, exclusive: false, autoDelete: false).GetAwaiter().GetResult();
+        channel.QueueBindAsync("account.audit", "account.events", "money.#").GetAwaiter().GetResult();
+
         services.AddScoped(typeof(InboxFilter<>));
 
         services.AddMassTransit(busCfg =>
         {
             busCfg.AddConsumer<ClientBlockedConsumer>();
             busCfg.AddConsumer<ClientUnblockedConsumer>();
-            
             busCfg.UsingRabbitMq((context, rabbit) =>
             {
-                rabbit.Host(new Uri($"rabbitmq://{host}:{port}{vhostPath}"),h =>
+                rabbit.Host(new Uri($"rabbitmq://{host}:{port}{vhostPath}"), h =>
                 {
                     h.Username(user);
                     h.Password(pass);
                 });
-                
 
                 rabbit.Message<DefaultEvent>(x => x.SetEntityName("account.events"));
                 rabbit.Message<IEventIdentifiable>(x => x.SetEntityName("account.events"));
@@ -65,30 +78,6 @@ public static class MassTransitExtensions
                 rabbit.Publish<InterestAccrued>(x => x.ExchangeType = ExchangeType.Topic);
                 rabbit.Publish<ClientBlocked>(x => x.ExchangeType = ExchangeType.Topic);
                 rabbit.Publish<ClientUnblocked>(x => x.ExchangeType = ExchangeType.Topic);
-                
-
-                rabbit.ReceiveEndpoint("account.crm", e =>
-                {
-                    e.ConfigureConsumeTopology = false;
-                    e.Bind("account.events", s =>
-                    {
-                        s.ExchangeType = ExchangeType.Topic;
-                        s.RoutingKey = "account.*";
-                    });
-                    
-                    e.AutoStart = false;
-                });
-
-                rabbit.ReceiveEndpoint("account.notifications", e =>
-                {
-                    e.ConfigureConsumeTopology = false;
-                    e.Bind("account.events", s => {
-                        s.ExchangeType = ExchangeType.Topic;
-                        s.RoutingKey = "money.*";
-                    });
-                    
-                    e.AutoStart = false;
-                });
 
                 rabbit.ReceiveEndpoint("account.antifraud", e =>
                 {
@@ -99,33 +88,23 @@ public static class MassTransitExtensions
                         s.ExchangeType = ExchangeType.Topic;
                         s.RoutingKey = "client.#";
                     });
-                    
-                    e.Bind<ClientBlocked>(s => {
+
+                    e.Bind<ClientBlocked>(s =>
+                    {
                         s.ExchangeType = ExchangeType.Topic;
                         s.RoutingKey = "client.blocked";
                     });
-                    e.Bind<ClientUnblocked>(s => {
+                    e.Bind<ClientUnblocked>(s =>
+                    {
                         s.ExchangeType = ExchangeType.Topic;
                         s.RoutingKey = "client.unblocked";
                     });
-                    
-                    // e.UseConsumeFilter(typeof(EnvelopeFilter<>), context);
+
+                    e.UseConsumeFilter(typeof(EnvelopeFilter<>), context);
                     e.UseConsumeFilter(typeof(InboxFilter<>), context);
 
                     e.ConfigureConsumer<ClientBlockedConsumer>(context);
                     e.ConfigureConsumer<ClientUnblockedConsumer>(context);
-                });
-
-                rabbit.ReceiveEndpoint("account.audit", e =>
-                {
-                    e.ConfigureConsumeTopology = false;
-                    e.Bind("account.events", s =>
-                    {
-                        s.ExchangeType = ExchangeType.Topic;
-                        s.RoutingKey = "#";
-                    });
-
-                    e.AutoStart = false;
                 });
             });
         });

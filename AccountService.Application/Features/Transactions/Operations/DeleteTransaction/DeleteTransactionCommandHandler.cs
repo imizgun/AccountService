@@ -8,15 +8,16 @@ using MediatR;
 namespace AccountService.Application.Features.Transactions.Operations.DeleteTransaction;
 
 public class DeleteTransactionCommandHandler(
-    ITransactionRepository transactionRepository, 
+    ITransactionRepository transactionRepository,
     IUnitOfWork unitOfWork,
     IOutboxMessageRepository outboxMessageRepository) : IRequestHandler<DeleteTransactionCommand, bool>
 {
-    public async Task<bool> Handle(DeleteTransactionCommand request, CancellationToken cancellationToken) 
+    public async Task<bool> Handle(DeleteTransactionCommand request, CancellationToken cancellationToken)
     {
         await unitOfWork.BeginTransactionAsync(cancellationToken);
 
-        try {
+        try
+        {
             var transaction =
                 await transactionRepository.GetByIdForUpdateAsync(request.TransactionId, cancellationToken);
 
@@ -39,7 +40,8 @@ public class DeleteTransactionCommandHandler(
                 ? true
                 : throw new InvalidOperationException("Failed to delete transaction");
         }
-        catch {
+        catch
+        {
             await unitOfWork.RollbackAsync(cancellationToken);
             throw;
         }

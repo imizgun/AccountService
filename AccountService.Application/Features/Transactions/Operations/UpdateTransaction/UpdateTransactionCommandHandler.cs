@@ -9,15 +9,16 @@ namespace AccountService.Application.Features.Transactions.Operations.UpdateTran
 
 
 public class UpdateTransactionCommandHandler(
-    ITransactionRepository transactionRepository, 
+    ITransactionRepository transactionRepository,
     IUnitOfWork unitOfWork,
     IOutboxMessageRepository outboxMessageRepository) : IRequestHandler<UpdateTransactionCommand, bool>
 {
-    public async Task<bool> Handle(UpdateTransactionCommand request, CancellationToken cancellationToken) 
+    public async Task<bool> Handle(UpdateTransactionCommand request, CancellationToken cancellationToken)
     {
         await unitOfWork.BeginTransactionAsync(cancellationToken);
 
-        try {
+        try
+        {
             var transaction =
                 await transactionRepository.GetByIdForUpdateAsync(request.TransactionId, cancellationToken);
 
@@ -39,7 +40,8 @@ public class UpdateTransactionCommandHandler(
                 : throw new InvalidOperationException(
                     $"Error while updating transaction with ID {request.TransactionId}");
         }
-        catch {
+        catch
+        {
             await unitOfWork.RollbackAsync(cancellationToken);
             throw;
         }

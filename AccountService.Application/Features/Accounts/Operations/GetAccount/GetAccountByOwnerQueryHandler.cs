@@ -6,8 +6,8 @@ using Microsoft.Extensions.Logging;
 namespace AccountService.Application.Features.Accounts.Operations.GetAccount;
 
 public class GetAccountByOwnerQueryHandler(
-    IAccountRepository accountRepository, 
-    IMapper mapper, 
+    IAccountRepository accountRepository,
+    IMapper mapper,
     ILogger<GetAccountByOwnerQueryHandler> logger)
     : IRequestHandler<GetAccountsByOwnerQuery, List<AccountDto>>
 {

@@ -8,8 +8,8 @@ using MediatR;
 namespace AccountService.Application.Features.Accounts.Operations.CreateAccount;
 
 public class CreateAccountCommandHandler(
-    IAccountRepository accountRepository, 
-    IUnitOfWork unitOfWork, 
+    IAccountRepository accountRepository,
+    IUnitOfWork unitOfWork,
     IOutboxMessageRepository outboxMessageRepository)
     : IRequestHandler<CreateAccountCommand, Guid>
 {
@@ -21,7 +21,8 @@ public class CreateAccountCommandHandler(
 
         await unitOfWork.BeginTransactionAsync(cancellationToken);
 
-        try {
+        try
+        {
             var newAccount = Account.Create(
                 request.OwnerId,
                 type,
@@ -30,30 +31,31 @@ public class CreateAccountCommandHandler(
             );
 
             var res = await accountRepository.CreateAsync(newAccount, cancellationToken);
-        
+
             var openAccountEvent = new AccountOpened(
-                eventId, 
-                DateTime.UtcNow, 
+                eventId,
+                DateTime.UtcNow,
                 new Meta(request.CorrelationId),
                 newAccount.Id,
                 newAccount.OwnerId,
                 newAccount.Currency,
                 newAccount.AccountType.ToString()
             );
-        
+
             await outboxMessageRepository.AddAsync(new OutboxMessage(openAccountEvent), cancellationToken);
             var save = await unitOfWork.SaveChangesAsync(cancellationToken);
 
             if (save != 2) throw new InvalidOperationException("Failed to create account");
-            
+
             await unitOfWork.CommitAsync(cancellationToken);
-        
+
             return res;
         }
-        catch {
+        catch
+        {
             await unitOfWork.RollbackAsync(cancellationToken);
             throw;
         }
-        
+
     }
 }

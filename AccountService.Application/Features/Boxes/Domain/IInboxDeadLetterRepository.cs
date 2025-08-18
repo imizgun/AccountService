@@ -1,6 +1,6 @@
 ﻿namespace AccountService.Application.Features.Boxes.Domain;
 
-public interface IInboxDeadLetterRepository 
+public interface IInboxDeadLetterRepository
 {
-	Task AddAsync(InboxDeadLetter deadLetter);
+    Task AddAsync(InboxDeadLetter deadLetter);
 }

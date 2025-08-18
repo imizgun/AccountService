@@ -11,10 +11,10 @@ public class TransactionTests
         // Arrange
         var accountId = Guid.NewGuid();
         var counterpartyAccountId = Guid.NewGuid();
-        var amount = 100.0m;
-        var currency = "USD";
-        var transactionType = ETransactionType.Debit;
-        var description = "Test transaction";
+        const decimal amount = 100.0m;
+        const string currency = "USD";
+        const ETransactionType transactionType = ETransactionType.Debit;
+        const string description = "Test transaction";
 
         // Act
         var transaction = Transaction.Create(accountId, counterpartyAccountId, amount, currency, transactionType, description);
@@ -36,10 +36,10 @@ public class TransactionTests
         // Arrange
         var accountId = Guid.NewGuid();
         var counterpartyAccountId = Guid.NewGuid();
-        var amount = 0.0m; // or negative value
-        var currency = "USD";
-        var transactionType = ETransactionType.Credit;
-        var description = "Test transaction";
+        const decimal amount = 0.0m; // or negative value
+        const string currency = "USD";
+        const ETransactionType transactionType = ETransactionType.Credit;
+        const string description = "Test transaction";
 
         // Act & Assert
         Assert.Throws<ArgumentException>(() => Transaction.Create(accountId, counterpartyAccountId, amount, currency, transactionType, description));
@@ -50,10 +50,10 @@ public class TransactionTests
     {
         // Arrange
         var accountId = Guid.NewGuid();
-        var amount = 100.0m;
-        var currency = "USD";
-        var transactionType = ETransactionType.Credit;
-        var description = "Test transaction";
+        const decimal amount = 100.0m;
+        const string currency = "USD";
+        const ETransactionType transactionType = ETransactionType.Credit;
+        const string description = "Test transaction";
 
         var transaction = Transaction.Create(accountId, null, amount, currency, transactionType, description);
 
@@ -67,10 +67,10 @@ public class TransactionTests
         // Arrange
         var accountId = Guid.NewGuid();
         var counterpartyAccountId = Guid.NewGuid();
-        var amount = 100.0m;
-        var currency = "USD";
-        var transactionType = ETransactionType.Debit;
-        var description = "Test transaction";
+        const decimal amount = 100.0m;
+        const string currency = "USD";
+        const ETransactionType transactionType = ETransactionType.Debit;
+        const string description = "Test transaction";
 
         var transaction = Transaction.Create(accountId, counterpartyAccountId, amount, currency, transactionType, description);
 
@@ -92,9 +92,9 @@ public class TransactionTests
     {
         // Arrange
         var accountId = Guid.NewGuid();
-        var amount = 100.0m;
-        var currency = "USD";
-        var transactionType = ETransactionType.Credit;
+        const decimal amount = 100.0m;
+        const string currency = "USD";
+        const ETransactionType transactionType = ETransactionType.Credit;
         var description = new string('A', Transaction.MaxDescriptionLength + 1); // Max length description
 
         // Act
@@ -111,10 +111,10 @@ public class TransactionTests
         // Arrange
         var accountId = Guid.NewGuid();
         var counterpartyAccountId = Guid.NewGuid();
-        var amount = 100.0m;
-        var currency = "USD";
-        var transactionType = ETransactionType.Credit;
-        var description = "Test transaction";
+        const decimal amount = 100.0m;
+        const string currency = "USD";
+        const ETransactionType transactionType = ETransactionType.Credit;
+        const string description = "Test transaction";
 
         Assert.Throws<ArgumentException>(() =>
             Transaction.Create(accountId, counterpartyAccountId, amount, currency, transactionType, description));

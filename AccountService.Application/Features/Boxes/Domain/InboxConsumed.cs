@@ -2,7 +2,8 @@
 
 public class InboxConsumed
 {
-	public Guid MessageId { get; set; }
-	public string Handler { get; set; } = "";
-	public DateTime ProcessedAt { get; set; }
+    public Guid MessageId { get; set; }
+    // ReSharper disable once EntityFramework.ModelValidation.UnlimitedStringLength Это имя хэнделра, так что оно берется из имени типаы
+    public string Handler { get; set; } = "";
+    public DateTime ProcessedAt { get; set; }
 }

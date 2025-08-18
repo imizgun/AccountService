@@ -32,7 +32,8 @@ public class GlobalExceptionHandler : IExceptionHandler
                 Response: MbResult<object>.Fail("Concurrency conflict")
             ),
 
-            DbUpdateException ex when Utils.Utils.TryGetPg(ex, out var pg) && (pg.SqlState == "40001" || pg.SqlState == "40P01") => (
+            // ReSharper disable once ArrangeRedundantParentheses Без скобок не очень понятно
+            DbUpdateException ex when Utils.Utils.TryGetPg(ex, out var pg) && (pg.SqlState is "40001" or "40P01") => (
                 StatusCode: StatusCodes.Status409Conflict,
                 Response: MbResult<object>.Fail($"DB conflict ({pg.SqlState})")
             ),

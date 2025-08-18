@@ -2,11 +2,17 @@
 using Hangfire;
 using Hangfire.PostgreSql;
 
-namespace AccountService.Configs;
+namespace AccountService.Extensions.BuilderExtensions;
 
-public static class HangfireConfig
+public static class HangfireExtensions
 {
-    public static IServiceCollection AddHangfireWithPostgres(this IServiceCollection services, IConfiguration cfg)
+    public static void AddCustomHangfire(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddHangfireWithPostgres(configuration);
+        services.AddScoped<AccrueInterestRateJob>();
+    }
+
+    private static void AddHangfireWithPostgres(this IServiceCollection services, IConfiguration cfg)
     {
         var conn = cfg.GetConnectionString("AccountServiceDbContext");
         services.AddHangfire(options =>
@@ -24,20 +30,5 @@ public static class HangfireConfig
         });
 
         services.AddHangfireServer();
-
-        return services;
-    }
-
-    public static void AddDailyInterestRecurringJob(this IApplicationBuilder app, TimeZoneInfo tz)
-    {
-        const string jobId = "daily-accrue-interest";
-        RecurringJob.AddOrUpdate<AccrueInterestRateJob>(
-            jobId,
-            job => job.RunJobAsync(CancellationToken.None),
-            cronExpression: "0 2 * * *",
-            new RecurringJobOptions
-            {
-                TimeZone = tz
-            });
     }
 }

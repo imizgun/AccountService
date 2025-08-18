@@ -10,9 +10,9 @@
 /// <param name="Amount">Сумма перевода</param>
 /// <param name="Description">Описание транзакции</param>
 public record MakeTransactionRequest(
-	Guid AccountId,
-	Guid? CounterpartyAccountId,
-	string TransactionType,
-	string Currency,
-	decimal Amount,
-	string Description);
+    Guid AccountId,
+    Guid? CounterpartyAccountId,
+    string TransactionType,
+    string Currency,
+    decimal Amount,
+    string Description);

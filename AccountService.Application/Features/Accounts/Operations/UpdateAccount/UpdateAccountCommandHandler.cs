@@ -8,16 +8,17 @@ using MediatR;
 namespace AccountService.Application.Features.Accounts.Operations.UpdateAccount;
 
 public class UpdateAccountCommandHandler(
-    IAccountRepository accountRepository, 
-    IUnitOfWork unitOfWork, 
+    IAccountRepository accountRepository,
+    IUnitOfWork unitOfWork,
     IOutboxMessageRepository outboxMessageRepository)
     : IRequestHandler<UpdateAccountCommand, bool>
 {
-    public async Task<bool> Handle(UpdateAccountCommand request, CancellationToken cancellationToken) 
+    public async Task<bool> Handle(UpdateAccountCommand request, CancellationToken cancellationToken)
     {
         await unitOfWork.BeginTransactionAsync(cancellationToken);
 
-        try {
+        try
+        {
             var account = await accountRepository.GetByIdForUpdateAsync(request.AccountId, cancellationToken);
 
             if (account == null) throw new InvalidOperationException("Account is already closed");
@@ -34,10 +35,11 @@ public class UpdateAccountCommandHandler(
             await outboxMessageRepository.AddAsync(new OutboxMessage(updateAccountEvent), cancellationToken);
 
             var res = await unitOfWork.SaveChangesAsync(cancellationToken);
-            
-            return res == 2 ? true : throw new InvalidOperationException("Error while updating account");;
+
+            return res == 2 ? true : throw new InvalidOperationException("Error while updating account");
         }
-        catch {
+        catch
+        {
             await unitOfWork.RollbackAsync(cancellationToken);
             throw;
         }

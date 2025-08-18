@@ -9,8 +9,10 @@ namespace AccountService.Background.Rabbit.Filters;
 
 public class EnvelopeFilter<T>(
     IInboxDeadLetterRepository deadLetters,
-    ILogger<EnvelopeFilter<T>> logger) : IFilter<ConsumeContext<T>> where T : DefaultEvent {
-    public async Task Send(ConsumeContext<T> context, IPipe<ConsumeContext<T>> next) {
+    ILogger<EnvelopeFilter<T>> logger) : IFilter<ConsumeContext<T>> where T : DefaultEvent
+{
+    public async Task Send(ConsumeContext<T> context, IPipe<ConsumeContext<T>> next)
+    {
         var version = context.Message.Meta.Version;
         logger.LogInformation("[EnvelopeFilter] Processing message. Version: {Version}", version);
 
@@ -18,9 +20,12 @@ public class EnvelopeFilter<T>(
             ? context.Message.EventId
             : context.MessageId ?? Guid.Empty;
 
-        if (messageId == Guid.Empty || string.IsNullOrWhiteSpace(version) || !IsSupported(version)) {
-            try {
-                await deadLetters.AddAsync(new InboxDeadLetter {
+        if (messageId == Guid.Empty || string.IsNullOrWhiteSpace(version) || !IsSupported(version))
+        {
+            try
+            {
+                await deadLetters.AddAsync(new InboxDeadLetter
+                {
                     MessageId = messageId == Guid.Empty ? Guid.NewGuid() : messageId,
                     Handler = typeof(T).Name,
                     ReceivedAt = DateTime.UtcNow,
@@ -32,7 +37,8 @@ public class EnvelopeFilter<T>(
                     "Invalid envelope/version. Message moved to dead letter. schema={schemaVersion}, messageId={messageId}",
                     version, messageId);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 logger.LogError(ex, "Failed to save message to dead letter queue");
             }
 
