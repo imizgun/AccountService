@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
+﻿using AccountService.Application.Shared.Contracts;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
-using AccountService.Responses;
 
 namespace AccountService.Middlewares;
 
@@ -8,8 +8,8 @@ public class GlobalExceptionHandler : IExceptionHandler
 {
 
     public async ValueTask<bool> TryHandleAsync(
-        HttpContext context, 
-        Exception exception, 
+        HttpContext context,
+        Exception exception,
         CancellationToken cancellationToken)
     {
 
@@ -32,7 +32,8 @@ public class GlobalExceptionHandler : IExceptionHandler
                 Response: MbResult<object>.Fail("Concurrency conflict")
             ),
 
-            DbUpdateException ex when Utils.Utils.TryGetPg(ex, out var pg) && (pg.SqlState == "40001" || pg.SqlState == "40P01") => (
+            // ReSharper disable once ArrangeRedundantParentheses Без скобок не очень понятно
+            DbUpdateException ex when Utils.Utils.TryGetPg(ex, out var pg) && (pg.SqlState is "40001" or "40P01") => (
                 StatusCode: StatusCodes.Status409Conflict,
                 Response: MbResult<object>.Fail($"DB conflict ({pg.SqlState})")
             ),
@@ -41,7 +42,7 @@ public class GlobalExceptionHandler : IExceptionHandler
                 StatusCode: StatusCodes.Status409Conflict,
                 Response: MbResult<object>.Fail("Transient failure, please retry")
             ),
-            
+
             KeyNotFoundException => (
                 StatusCode: StatusCodes.Status404NotFound,
                 Response: MbResult<object>.Fail(exception.Message)

@@ -1,0 +1,54 @@
+﻿using AccountService.Application.Features.Accounts.Domain;
+using AccountService.Application.Shared.Services.Abstractions;
+using FluentValidation;
+
+namespace AccountService.Application.Features.Transactions.Operations.MakeTransactions;
+
+
+// ReSharper disable once UnusedMember.Global Валидатор неявно используется в пайплайне
+public class MakeTransactionsCommandValidator : AbstractValidator<MakeTransactionCommand>
+{
+    public MakeTransactionsCommandValidator(ICurrencyService currencyService, IAccountRepository accountRepository)
+    {
+        RuleFor(x => x.AccountId)
+            .NotEmpty()
+            .MustAsync(async (x, token) => await accountRepository.ExistsAsync(x, token))
+            .WithMessage("Account not found");
+
+        RuleFor(x => x.Description)
+            .NotEmpty();
+
+        RuleFor(x => x.Amount)
+            .GreaterThan(0);
+
+        RuleFor(x => x.Currency)
+            .NotEmpty()
+            .Must(currencyService.IsValidCurrency)
+            .WithMessage("Currency must be a 3-letter ISO code.");
+
+        RuleFor(x => x.CounterpartyAccountId)
+            .MustAsync(async (id, token) =>
+            {
+                if (id is not null)
+                    // ReSharper disable once ConstantNullCoalescingCondition Если убрать ?? будет ошибка компиляции из-за несоответствия nullable и обычного типов
+                    return await accountRepository.ExistsAsync(id ?? Guid.Empty, token);
+                return true;
+            })
+            .WithMessage("Counterparty account does not exist")
+            .MustAsync(async (x, token) =>
+            {
+                var account = await accountRepository.GetByIdAsync(x ?? Guid.Empty, token);
+                return account?.ClosingDate is null;
+            })
+            .WithMessage("You cannot make transactions to closed account");
+
+        RuleFor(x => x.AccountId)
+            .MustAsync(async (x, token) =>
+            {
+                var account = await accountRepository.GetByIdAsync(x, token);
+                return account?.ClosingDate is null;
+            })
+            .WithMessage("You cannot make transactions from closed account");
+
+    }
+}

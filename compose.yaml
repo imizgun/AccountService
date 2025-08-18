@@ -10,11 +10,19 @@
       - JwtSettings__Audience=account
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__AccountServiceDbContext=Host=db;Port=5432;Database=accountService;Username=postgres;Password=123
+      - RabbitMQ__Host=rabbitmq
+      - RabbitMQ__Port=5672
+      - RabbitMQ__Username=admin
+      - RabbitMQ__Password=admin
     ports:
       - "80:80"
     depends_on:
-      - keycloak
-      - db
+        db:
+          condition: service_healthy
+        keycloak:
+            condition: service_started
+        rabbitmq:
+            condition: service_healthy
 
   keycloak:
     image: quay.io/keycloak/keycloak:latest
@@ -40,14 +48,34 @@
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123
       POSTGRES_DB: accountService
+    volumes:
+      - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
       interval: 5s
       timeout: 3s
       retries: 5
       
+  rabbitmq:
+    image: rabbitmq:4-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq/mnesia
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
 volumes:
   keycloak-data:
+  pgdata:
+  rabbitmq-data:
     
 networks:
   app-network:

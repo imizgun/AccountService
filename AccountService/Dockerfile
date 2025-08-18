@@ -13,8 +13,6 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["AccountService/AccountService.csproj", "AccountService/"]
 COPY ["AccountService.Application/AccountService.Application.csproj", "AccountService.Application/"]
-COPY ["AccountService.Core/AccountService.Core.csproj", "AccountService.Core/"]
-COPY ["AccountService.DatabaseAccess/AccountService.DatabaseAccess.csproj", "AccountService.DatabaseAccess/"]
 RUN dotnet restore "./AccountService/AccountService.csproj"
 COPY . .
 WORKDIR "/src/AccountService"
