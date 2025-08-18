@@ -35,7 +35,7 @@ public static class MassTransitExtensions
         channel.QueueBindAsync("account.audit", "account.events", "#").GetAwaiter().GetResult();
 
         channel.QueueDeclareAsync("account.notifications", durable: true, exclusive: false, autoDelete: false).GetAwaiter().GetResult();
-        channel.QueueBindAsync("account.audit", "account.events", "money.#").GetAwaiter().GetResult();
+        channel.QueueBindAsync("account.notifications", "account.events", "money.#").GetAwaiter().GetResult();
 
         services.AddScoped(typeof(InboxFilter<>));
 

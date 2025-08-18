@@ -25,14 +25,13 @@ builder.Services.AddControllers(options =>
 }).AddApplicationPart(typeof(ControllersAssemblyMarker).Assembly);
 
 builder.Services.AddCustomMediator();
+builder.Services.AddCustomHealthChecks(builder.Configuration);
 
 builder.Services.AddCustomDb(builder.Configuration);
 
 builder.Services.AddMessaging(builder.Configuration);
 
 builder.Services.AddCustomHangfire(builder.Configuration);
-
-builder.Services.AddCustomHealthChecks(builder.Configuration);
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();

@@ -8346,3 +8346,10 @@ MassTransit.RabbitMqConnectionException: Broker unreachable: admin@localhost:567
 2025-08-18 21:33:24.498 +03:00 [INF] HTTP GET /swagger/v1/swagger.json responded 200 in 20.8882 ms
 2025-08-18 21:34:42.942 +03:00 [INF] Usage Telemetry: {"id":"0c580000-805d-7656-b142-08ddde852d0d","created":"2025-08-18T21:29:32.4369694\u002B03:00","host":{"framework_version":"9.0.7","mass_transit_version":"8.5.2.0","operating_system_version":"Microsoft Windows NT 10.0.26100.0","time_zone_info":"(UTC\u002B03:00) \u041C\u043E\u0441\u043A\u0432\u0430, \u0421\u0430\u043D\u043A\u0442-\u041F\u0435\u0442\u0435\u0440\u0431\u0443\u0440\u0433","commit_hash":"96adb565f7cc311488d1df104549f924203be760"},"bus":[{"created":"2025-08-18T21:29:32.4406268\u002B03:00","configured":"2025-08-18T21:29:32.7108038\u002B03:00","started":"2025-08-18T21:29:42.8925469\u002B03:00","name":"IBus","endpoints":[{"name":"account.antifraud","type":"RabbitMQ","prefetch_count":1,"consumer_count":2,"message_count":2},{"name":"_bus_","type":"RabbitMQ","prefetch_count":32}]}]}
 2025-08-18 21:41:40.352 +03:00 [INF] Bus stopped: "rabbitmq://localhost/"
+2025-08-18 21:42:58.692 +03:00 [INF] Configured endpoint account.antifraud, Consumer: AccountService.Application.Features.Boxes.Consumers.ClientBlockedConsumer
+2025-08-18 21:42:58.771 +03:00 [INF] Configured endpoint account.antifraud, Consumer: AccountService.Application.Features.Boxes.Consumers.ClientUnblockedConsumer
+2025-08-18 21:43:01.040 +03:00 [WRN] Failed to determine the https port for redirect.
+2025-08-18 21:43:01.286 +03:00 [INF] HTTP GET /swagger/index.html responded 200 in 341.1210 ms
+2025-08-18 21:43:01.756 +03:00 [INF] HTTP GET /swagger/v1/swagger.json responded 200 in 226.0375 ms
+2025-08-18 21:43:09.176 +03:00 [INF] Bus started: "rabbitmq://localhost/"
+2025-08-18 21:43:22.145 +03:00 [INF] Bus stopped: "rabbitmq://localhost/"

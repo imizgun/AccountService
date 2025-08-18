@@ -13,8 +13,12 @@ services:
     ports:
       - "46320:80"
     depends_on:
-      - keycloak
-      - db
+      keycloak:
+          condition: service_started
+      db:
+        condition: service_healthy
+      rabbitmq:
+          condition: service_healthy  
 
   keycloak:
     image: quay.io/keycloak/keycloak:latest
@@ -41,8 +45,35 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 123
       POSTGRES_DB: accountService
+    volumes:
+      - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "postgres" ]
       interval: 5s
       timeout: 3s
       retries: 5
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    ports:
+      - "15672:15672"
+      - "25672:25672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq/mnesia
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      
+volumes:
+  keycloak-data:
+  pgdata:
+  rabbitmq-data:
+
+networks:
+  app-network:
+    driver: bridge

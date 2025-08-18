@@ -1,5 +1,4 @@
 ﻿using AccountService.Application.Shared.Events;
-using Swashbuckle.AspNetCore.Annotations;
 
 // ReSharper disable UnusedMember.Global Неиспользуемые свойства нужны для события
 

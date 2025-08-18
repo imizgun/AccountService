@@ -1,5 +1,4 @@
 ﻿using AccountService.Application.Shared.Events;
-using Swashbuckle.AspNetCore.Annotations;
 
 namespace AccountService.Application.Features.Accounts.Events;
 
